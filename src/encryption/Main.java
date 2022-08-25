@@ -1,24 +1,25 @@
 package encryption;
 
 import org.eclipse.swt.SWT;
-//import org.eclipse.swt.events.PaintEvent;
-//import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
-//import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
-//import java.security.MessageDigest;
 
 public class Main {
+	
+	static String test = "RAONTECH";
+	
+	static Aes_256 aes = new Aes_256();
+	static Hashing hash = new Hashing();
+	
     public static Text textBox1 = null;
     public static Text textBox2 = null;
     public static Text textBox3 = null;
     public static Text textBox4 = null;
     
-    public static void main(String[] args) {
-    	
+    public static void main(String[] args) throws Exception {
         Display display = new Display();
         Shell shell = new Shell(display);
         
@@ -93,6 +94,9 @@ public class Main {
 //            e.gc.drawText("I'm in blue!",10,10);        
 //          }
 //        });
+        System.out.println(hash.sha256(test));
+        System.out.println(aes.decrypt(aes.encrypt(test)));
+        //System.out.println();
         
         shell.open();
         
