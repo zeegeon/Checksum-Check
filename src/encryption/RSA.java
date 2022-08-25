@@ -1,50 +1,56 @@
 package encryption;
 
-import java.security.KeyPair;
-import java.security.PrivateKey;
-import java.security.PublicKey;
+import java.io.UnsupportedEncodingException;
+import java.security.*;
+//import java.security.spec.*;
 import java.util.Base64;
 
+import javax.crypto.*;
+
 public class RSA {
-
-    public static void main(String[] args) throws Exception {
-        // RSA 키쌍을 생성합니다.
-
-        KeyPair keyPair = RSA_make.genRSAKeyPair();
-
-        PublicKey publicKey = keyPair.getPublic();
-        PrivateKey privateKey = keyPair.getPrivate();
-
-        String plainText = "RAONTECH";
-
-        // Base64 인코딩된 암호화 문자열 입니다.
-        String encrypted = RSA_make.encryptRSA(plainText, publicKey);
-        System.out.println("encrypted : " + encrypted);
-
-        // 복호화 합니다.
-        String decrypted = RSA_make.decryptRSA(encrypted, privateKey);
-        System.out.println("decrypted : " + decrypted);
-
-        // 공개키를 Base64 인코딩한 문자일을 만듭니다.
-        byte[] bytePublicKey = publicKey.getEncoded();
-        String base64PublicKey = Base64.getEncoder().encodeToString(bytePublicKey);
-        System.out.println("Base64 Public Key : " + base64PublicKey);
-
-        // 개인키를 Base64 인코딩한 문자열을 만듭니다.
-        byte[] bytePrivateKey = privateKey.getEncoded();
-        String base64PrivateKey = Base64.getEncoder().encodeToString(bytePrivateKey);
-        System.out.println("Base64 Private Key : " + base64PrivateKey);
-        
-        // 문자열로부터 PrivateKey와 PublicKey를 얻습니다.
-        PrivateKey prKey = RSA_make.getPrivateKeyFromBase64String(base64PrivateKey);
-        PublicKey puKey = RSA_make.getPublicKeyFromBase64String(base64PublicKey);
-        
-        // 공개키로 암호화 합니다.
-        String encrypted2 = RSA_make.encryptRSA(plainText, puKey);
-        System.out.println("encrypted : " + encrypted2);
-
-        // 복호화 합니다.
-        String decrypted2 = RSA_make.decryptRSA(encrypted, prKey);
-        System.out.println("decrypted : " + decrypted2);
+    // Generate 1024bit RSA key pair
+    public static KeyPair genRSAKeyPair() throws NoSuchAlgorithmException {
+        KeyPairGenerator gen = KeyPairGenerator.getInstance("RSA");
+        gen.initialize(1024, new SecureRandom());
+        return gen.genKeyPair();
     }
+  
+    //RSA Encryption by using Public Key
+    public static String encryptRSA(String plainText, PublicKey publicKey)
+            throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException,
+            BadPaddingException, IllegalBlockSizeException {
+        Cipher cipher = Cipher.getInstance("RSA");
+        cipher.init(Cipher.ENCRYPT_MODE, publicKey);
+
+        byte[] bytePlain = cipher.doFinal(plainText.getBytes());
+        return Base64.getEncoder().encodeToString(bytePlain);
+    }
+
+    // RSA Encryption by using Private Key
+    public static String decryptRSA(String encrypted, PrivateKey privateKey)
+            throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException,
+            BadPaddingException, IllegalBlockSizeException, UnsupportedEncodingException {
+        Cipher cipher = Cipher.getInstance("RSA");
+        byte[] byteEncrypted = Base64.getDecoder().decode(encrypted.getBytes());
+
+        cipher.init(Cipher.DECRYPT_MODE, privateKey);
+        byte[] bytePlain = cipher.doFinal(byteEncrypted);
+        return new String(bytePlain, "utf-8");
+    }
+
+//    public static PublicKey getPublicKeyFromBase64Encrypted(String base64PublicKey)
+//            throws NoSuchAlgorithmException, InvalidKeySpecException {
+//        byte[] decodedBase64PubKey = Base64.getDecoder().decode(base64PublicKey);
+//
+//        return KeyFactory.getInstance("RSA")
+//                .generatePublic(new X509EncodedKeySpec(decodedBase64PubKey));
+//    }
+//
+//    public static PrivateKey getPrivateKeyFromBase64Encrypted(String base64PrivateKey)
+//            throws NoSuchAlgorithmException, InvalidKeySpecException {
+//        byte[] decodedBase64PrivateKey = Base64.getDecoder().decode(base64PrivateKey);
+//
+//        return KeyFactory.getInstance("RSA")
+//                .generatePrivate(new PKCS8EncodedKeySpec(decodedBase64PrivateKey));
+//    }
 }

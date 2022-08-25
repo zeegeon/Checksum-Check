@@ -11,7 +11,6 @@ public class Aes_256 {
     protected final String key = "f6a5cd16ea3dfa2587ab5dd3503d283a"; // 32byte
     protected String iv = key.substring(0, 16); //16bits
 
-    // 암호화
     public String encrypt(String text) throws Exception {
         Cipher cipher = Cipher.getInstance(alg);
         SecretKeySpec keySpec = new SecretKeySpec(key.getBytes(), "AES");
@@ -22,7 +21,6 @@ public class Aes_256 {
         return Base64.getEncoder().encodeToString(encrypted);
     }
 
-    // 복호화
     public String decrypt(String cipherText) throws Exception {
         Cipher cipher = Cipher.getInstance(alg);
         SecretKeySpec keySpec = new SecretKeySpec(key.getBytes(), "AES");

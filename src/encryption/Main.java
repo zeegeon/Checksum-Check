@@ -1,5 +1,9 @@
 package encryption;
 
+//import java.security.KeyPair;
+//import java.security.PrivateKey;
+//import java.security.PublicKey;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
@@ -9,10 +13,12 @@ import org.eclipse.swt.widgets.*;
 
 public class Main {
 	
-	static String test = "RAONTECH";
+	// Encryption variable
+	static String testkey = "RAONTECH";
 	
 	static Aes_256 aes = new Aes_256();
 	static Hashing hash = new Hashing();
+	static RSA rsa = new RSA();
 	
     public static Text textBox1 = null;
     public static Text textBox2 = null;
@@ -40,8 +46,7 @@ public class Main {
         {
 
             @Override
-            protected void layout(Composite arg0, boolean arg1) 
-            {
+            protected void layout(Composite arg0, boolean arg1) {
                 arg0.setSize(shell.getSize().x ,shell.getSize().y);
                 
                 // change Text box size by win size 
@@ -63,8 +68,7 @@ public class Main {
 
             // return size of recommend size to show all contents of the Control object 
             @Override
-            protected Point computeSize(Composite arg0, int arg1, int arg2, boolean arg3) 
-            {
+            protected Point computeSize(Composite arg0, int arg1, int arg2, boolean arg3) {
                 return null;
             }
         });
@@ -94,10 +98,21 @@ public class Main {
 //            e.gc.drawText("I'm in blue!",10,10);        
 //          }
 //        });
-        System.out.println(hash.sha256(test));
-        System.out.println(aes.decrypt(aes.encrypt(test)));
-        //System.out.println();
         
+        
+//        // Hashing test
+//        System.out.println(hash.sha256(testkey));
+//        
+//        // AES_256 test
+//        System.out.println(aes.decrypt(aes.encrypt(testkey)));
+//        
+//        // RSA test
+//        KeyPair keyPair = rsa.genRSAKeyPair();
+//        PrivateKey key_private = keyPair.getPrivate();
+//        PublicKey key_public = keyPair.getPublic();
+//        
+//        System.out.println(rsa.decryptRSA(rsa.encryptRSA(testkey, key_public), key_private));
+
         shell.open();
         
         while (!shell.isDisposed()) 
