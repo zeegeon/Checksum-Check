@@ -5,9 +5,9 @@ import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
-public class Aes_256 {
+public class AES {
 
-    public static String alg = "AES/CBC/PKCS5Padding"; // In java, PKC5 calculate as PKC7
+    public static String alg = "AES/CBC/PKCS5Padding";
     protected final String key = "f6a5cd16ea3dfa2587ab5dd3503d283a"; // 32byte
     protected String iv = key.substring(0, 16); //16bits
 

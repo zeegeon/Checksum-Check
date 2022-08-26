@@ -3,7 +3,7 @@ package encryption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-public class Hashing {
+public class SHA {
 
 	public String sha256(String msg) throws NoSuchAlgorithmException {
 		MessageDigest md = MessageDigest.getInstance("SHA-256");
