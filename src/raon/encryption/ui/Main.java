@@ -1,4 +1,4 @@
-package ui;
+package raon.encryption.ui;
 
 import java.security.KeyPair;
 import java.security.PrivateKey;
@@ -20,9 +20,9 @@ import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Text;
 
-import encryption.AES;
-import encryption.SHA;
-import encryption.RSA;
+import raon.encryption.AES;
+import raon.encryption.RSA;
+import raon.encryption.SHA;
 
 public class Main {
 	
@@ -39,7 +39,7 @@ public class Main {
         
         // Shell setup
         shell.setText("Integrity check");
-        shell.setImage(new Image(display, "C:\\Users\\Milo\\eclipse-workspace-19.9\\Encryption_proj\\resource\\logo.bmp"));
+        shell.setImage(new Image(display, "C:\\Users\\Milo\\eclipse-workspace-19.9\\Encryption_proj\\resource\\logo.png"));
         shell.setSize(500, 300);
         
         // Get primary monitor size
@@ -125,7 +125,7 @@ public class Main {
         
 //        
         // Hashing test
-        System.out.println("SHA-256 hash : " + hash.sha256(testkey));
+        System.out.println("SHA-256 hash : " + hash.generateHash(testkey));
         
         // AES_256 test
         System.out.println("AES-256 decrypt : " + aes.encrypt(testkey));
@@ -135,7 +135,9 @@ public class Main {
         PrivateKey key_private = keyPair.getPrivate();
         PublicKey key_public = keyPair.getPublic();
         
-        System.out.println("RSA decrypt : " + rsa.encryptRSA(testkey, key_public));
+        System.out.println("PUB : " + key_public);
+        System.out.println("PRI : " + key_private);
+        System.out.println("RSA encrypt : " + rsa.encryptRSA(testkey, key_public));
 
         shell.open();
         

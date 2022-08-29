@@ -1,11 +1,11 @@
-package encryption;
+package raon.encryption;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 public class SHA {
 
-	public String sha256(String msg) throws NoSuchAlgorithmException {
+	public String generateHash(String msg) throws NoSuchAlgorithmException {
 		MessageDigest md = MessageDigest.getInstance("SHA-256");
 		md.update(msg.getBytes());
 		
