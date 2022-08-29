@@ -6,7 +6,7 @@ import java.security.NoSuchAlgorithmException;
 public class SHA {
 
 	public String generateHash(String msg) throws NoSuchAlgorithmException {
-		MessageDigest md = MessageDigest.getInstance("SHA-256");
+		MessageDigest md = MessageDigest.getInstance("MD5");
 		md.update(msg.getBytes());
 		
 		return bytesToHex(md.digest());

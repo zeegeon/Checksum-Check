@@ -8,8 +8,8 @@ import javax.crypto.spec.SecretKeySpec;
 public class AES {
 
     public static String alg = "AES/CBC/PKCS5Padding";
-    protected final String key = "f6a5cd16ea3dfa2587ab5dd3503d283a"; // 32byte
-    protected String iv = key.substring(0, 16); //16bits
+    public final String key = "f6a5cd16ea3dfa2587ab5dd3503d283a"; // 32byte
+    public String iv = key.substring(0, 16); //16bits
 
     public String encrypt(String text) throws Exception {
         Cipher cipher = Cipher.getInstance(alg);

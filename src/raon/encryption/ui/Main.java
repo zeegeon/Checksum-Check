@@ -38,8 +38,8 @@ public class Main {
         Shell shell = new Shell(display);
         
         // Shell setup
-        shell.setText("Integrity check");
-        shell.setImage(new Image(display, "C:\\Users\\Milo\\eclipse-workspace-19.9\\Encryption_proj\\resource\\logo.png"));
+        shell.setText("File integrity check");
+        shell.setImage(new Image(display, "resource//logo.png"));
         shell.setSize(500, 300);
         
         // Get primary monitor size
