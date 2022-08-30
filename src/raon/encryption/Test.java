@@ -1,9 +1,6 @@
 package raon.encryption;
 
 import java.io.File;
-import java.security.KeyPair;
-import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.util.Scanner;
 
 public class Test {
@@ -13,12 +10,11 @@ public class Test {
 	static RSA rsa = new RSA();
 		
 	static String buffer ="";
-	//static File buffer2 = new File(buffer);
 
 	public static void main(String[] args) throws Exception {
 		
 		Scanner sc = new Scanner(System.in);
-
+		
         System.out.println("========== Encryption Test Bench ===========");
         
 		while(true) {
@@ -29,16 +25,16 @@ public class Test {
 				// Hashing test
 				case 1:
 					System.out.println("\nSelected Encryption Type : SHA-256");
-					 //f6a5cd16ea3dfa2587ab5dd3503d283a49ba039270c023d54e65d2a1ae9f4ae4
+					 // f6a5cd16ea3dfa2587ab5dd3503d283a49ba039270c023d54e65d2a1ae9f4ae4
 						System.out.print("String :");
 						buffer = sc.next();
 				        System.out.println("SHA-256 hash : " + hash.generateHash(buffer));
 				        
+				        // C:\\Users\\Milo\\Desktop\\aes256.txt
+				        System.out.print("File location : ");
 				        buffer = sc.next();
-				        //C:\\Users\\Milo\\Desktop\\aes256.txt
 				        File buffer2 = new File(buffer);
-				        System.out.println("File hash : aes.txt");
-				        System.out.println("SHA-256 hash : " + hash.getFileChecksum(buffer2) + "\n");
+				        System.out.println("SHA-256 hash : " + hash.generateFileHash(buffer2) + "\n");
 					break;
 					
 				// AES-256 test
@@ -54,6 +50,7 @@ public class Test {
 						buffer = sc.next();
 				        System.out.println("AES-256 decrypt : " + aes.encrypt(buffer));
 					}
+					// Zc5VJmZjja3B3YlVzQVsAA==
 					else if(mode==2) {
 						System.out.print("String :");
 						buffer = sc.next();

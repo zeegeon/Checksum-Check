@@ -18,15 +18,15 @@ public class SHA {
 	public static String bytesToHex(byte[] bytes) {
 		StringBuilder builder = new StringBuilder();
 		for (byte b: bytes) {
+			
 			builder.append(String.format("%02x", b));
 		}
-		
+		System.out.print(builder);
 		return builder.toString();
 	}
 	
-	public String getFileChecksum(File file) throws IOException, NoSuchAlgorithmException {
+	public String generateFileHash(File file) throws IOException, NoSuchAlgorithmException {
 		
-		//FileRead fr = new FileRead();
 		MessageDigest md = MessageDigest.getInstance("SHA-256");
 		FileInputStream fis = new FileInputStream(file);
 		

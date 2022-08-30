@@ -6,5 +6,6 @@
 	<classpathentry kind="lib" path="lib/commons-codec-1.10.jar"/>
 	<classpathentry kind="lib" path="lib/local_policy.jar"/>
 	<classpathentry kind="lib" path="lib/US_export_policy.jar"/>
+	<classpathentry kind="lib" path="swing2swt.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
