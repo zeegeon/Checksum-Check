@@ -12,7 +12,7 @@ import javax.crypto.*;
 
 public class RSA {
     // Generate 1024bit RSA key pair
-    public static KeyPair genRSAKeyPair() throws NoSuchAlgorithmException {
+    public static KeyPair generateRSAKeyPair() throws NoSuchAlgorithmException {
         KeyPairGenerator gen = KeyPairGenerator.getInstance("RSA");
         gen.initialize(1024, new SecureRandom());
         

@@ -8,14 +8,14 @@ import javax.crypto.spec.SecretKeySpec;
 public class AES {
 
     public static String alg = "AES/CBC/PKCS5Padding";
-    public final String key = "f6a5cd16ea3dfa2587ab5dd3503d283a"; // 32byte
-    public String iv = key.substring(0, 16); //16bits
+    public final String key = "f6a5cd16ea3dfa2587ab5dd3503d283a49ba039270c023d54e65d2a1ae9f4ae4"; // 32byte
+    public String iv = ""; //16bits // key.substring(0, 16)
 
     public String encrypt(String text) throws Exception {
         Cipher cipher = Cipher.getInstance(alg);
         SecretKeySpec keySpec = new SecretKeySpec(key.getBytes(), "AES");
-        IvParameterSpec ivParamSpec = new IvParameterSpec(iv.getBytes());
-        cipher.init(Cipher.ENCRYPT_MODE, keySpec, ivParamSpec);
+        //IvParameterSpec ivParamSpec = new IvParameterSpec(iv.getBytes());
+        cipher.init(Cipher.ENCRYPT_MODE, keySpec);
 
         byte[] encrypted = cipher.doFinal(text.getBytes("UTF-8"));
         return Base64.getEncoder().encodeToString(encrypted);

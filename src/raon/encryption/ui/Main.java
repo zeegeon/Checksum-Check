@@ -94,25 +94,7 @@ public class Main {
         text.setBounds(10, 90, 200, 20);
         
         tab2.setControl(group);
-              
-        
-        // Tab 3
-        TabItem tab3 = new TabItem(folder, SWT.NONE);
-        tab3.setText("RSA");
 
-        Group group2 = new Group(folder, SWT.NONE);
-        group2.setText("RSA");
-
-        Button button5 = new Button(group2, SWT.NONE);
-        button5.setText("Button in Tab 3");
-        button5.setBounds(10, 50, 130, 30);
-
-        Text text5 = new Text(group2, SWT.BORDER);
-        text5.setText("Text in Tab 2");
-        text5.setBounds(10, 90, 200, 20);
-        
-        tab3.setControl(group2);
-        
 //        Canvas canvas = new Canvas(shell, SWT.NONE);
 //
 //        canvas.addPaintListener(new PaintListener() {
@@ -130,21 +112,10 @@ public class Main {
         // AES_256 test
         System.out.println("AES-256 decrypt : " + aes.encrypt(testkey));
         
-        // RSA test
-        KeyPair keyPair = rsa.genRSAKeyPair();
-        PrivateKey key_private = keyPair.getPrivate();
-        PublicKey key_public = keyPair.getPublic();
-        
-        System.out.println("PUB : " + key_public);
-        System.out.println("PRI : " + key_private);
-        System.out.println("RSA encrypt : " + rsa.encryptRSA(testkey, key_public));
-
         shell.open();
         
-        while (!shell.isDisposed()) 
-        {
-            if (!display.readAndDispatch()) 
-            {
+        while (!shell.isDisposed()) {
+            if (!display.readAndDispatch()) {
                 display.sleep();
             }
         }
