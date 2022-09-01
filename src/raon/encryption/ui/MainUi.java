@@ -1,16 +1,12 @@
 package raon.encryption.ui;
 
-import java.security.NoSuchAlgorithmException;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.SashForm;
-import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Monitor;
 import org.eclipse.swt.widgets.Shell;
@@ -18,17 +14,14 @@ import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Text;
 
-import raon.encryption.AES;
-import raon.encryption.SHA;
+import raon.encryption.AES256Controller;
+import raon.encryption.HashGenerator;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.wb.swt.SWTResourceManager;
 import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormAttachment;
-import org.eclipse.swt.dnd.DragSource;
-import org.eclipse.swt.widgets.Combo;
-import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.events.VerifyListener;
 import org.eclipse.swt.events.VerifyEvent;
@@ -37,10 +30,6 @@ public class MainUI {
 	
 	// Encryption variable
 	static String testkey = "RAONTECH";
-	
-//	static AES aes = new AES();
-//	static SHA hash = new SHA();
-//	static RSA rsa = new RSA();
 	private static Text textBar1;
 	private static Text textBar2;
 	private static Text tbOutputText;
