@@ -1,5 +1,7 @@
 package raon.encryption.ui;
 
+import java.security.NoSuchAlgorithmException;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.graphics.Font;
@@ -17,12 +19,10 @@ import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Text;
 
 import raon.encryption.AES;
-import raon.encryption.RSA;
 import raon.encryption.SHA;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.wb.swt.SWTResourceManager;
-import org.eclipse.swt.dnd.DropTarget;
-import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormAttachment;
@@ -30,25 +30,32 @@ import org.eclipse.swt.dnd.DragSource;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.ProgressBar;
+import org.eclipse.swt.events.VerifyListener;
+import org.eclipse.swt.events.VerifyEvent;
 
-public class MainUi {
+public class MainUI {
 	
 	// Encryption variable
 	static String testkey = "RAONTECH";
 	
-	static AES aes = new AES();
-	static SHA hash = new SHA();
-	static RSA rsa = new RSA();
+//	static AES aes = new AES();
+//	static SHA hash = new SHA();
+//	static RSA rsa = new RSA();
 	private static Text textBar1;
 	private static Text textBar2;
-	private static Text textBar3;
-    
-    public static void main(String[] args) throws Exception {
+	private static Text tbOutputText;
+	private static Text dropText;
+	
+	public void dragDrop() {
+        
+    }
+	
+    public static void main(String[] args) {
         Display display = new Display();
         Shell shell = new Shell(display);
         
         // Shell setup
-        shell.setText("File integrity check");
+        shell.setText("File Integrity Check");
         shell.setImage(new Image(display, "resource//logo.png"));
         shell.setSize(500, 300);
         
@@ -74,92 +81,120 @@ public class MainUi {
         tabFolder.setLayoutData(fd_tabFolder);
         
         TabItem tabHash = new TabItem(tabFolder, SWT.NONE);
-        tabHash.setImage(SWTResourceManager.getImage(MainUi.class, "/javax/swing/plaf/metal/icons/ocean/collapsed.gif"));
+        tabHash.setImage(SWTResourceManager.getImage(MainUI.class, "/javax/swing/plaf/metal/icons/ocean/collapsed.gif"));
         tabHash.setText("Hash Generator");
         
         Composite composite_1 = new Composite(tabFolder, SWT.NONE);
         tabHash.setControl(composite_1);
         
+        String hashCheckString = "";
+        String genHashString = "12345";
+        boolean hashCheck = false;
+        
         Label Label1 = new Label(composite_1, SWT.NONE);
-        Label1.setBounds(10, 144, 68, 15);
+        Label1.setAlignment(SWT.CENTER);
+        Label1.setBounds(22, 141, 62, 21);
         Label1.setText("Gen Hash");
         
         Label Label2 = new Label(composite_1, SWT.NONE);
-        Label2.setBounds(10, 165, 68, 15);
+        Label2.setAlignment(SWT.CENTER);
+        Label2.setBounds(22, 168, 62, 21);
         Label2.setText("Hash Check");
         
-        textBar1 = new Text(composite_1, SWT.BORDER | SWT.READ_ONLY | SWT.WRAP);
-        textBar1.setEnabled(false);
-        textBar1.setBounds(101, 141, 339, 18);
-        
-        textBar2 = new Text(composite_1, SWT.BORDER | SWT.WRAP);
-        textBar2.setForeground(SWTResourceManager.getColor(SWT.COLOR_RED));
+        textBar2 = new Text(composite_1, SWT.BORDER);
+        textBar2.addVerifyListener(new VerifyListener() {
+        	public void verifyText(VerifyEvent arg0) {
+        		//hashCheckString = hashCheckString.substring(0) + arg0.character;
+        		System.out.println(arg0.character);
+        	}
+        });
         textBar2.setBounds(101, 165, 339, 18);
         
-        DragSource dragSource = new DragSource(composite_1, DND.DROP_MOVE);
-        
-        DropTarget dropTarget = new DropTarget(composite_1, DND.DROP_MOVE);
-        
-        Label Label3 = new Label(composite_1, SWT.NONE);
-        Label3.setFont(SWTResourceManager.getFont("Arial", 15, SWT.NORMAL));
-        Label3.setAlignment(SWT.CENTER);
-        Label3.setBounds(0, 53, 464, 25);
-        Label3.setText("Drag and Drop File");
-        
-        ProgressBar progressBar = new ProgressBar(composite_1, SWT.NONE);
-        progressBar.setBounds(10, 196, 339, 18);
+        ProgressBar progressBar = new ProgressBar(composite_1, SWT.SMOOTH);
+        progressBar.setToolTipText("");
+        progressBar.setBounds(22, 196, 339, 18);
         
         Label progressLabel = new Label(composite_1, SWT.NONE);
-        progressLabel.setBounds(365, 199, 50, 15);
+        progressLabel.setBounds(389, 196, 29, 15);
         progressLabel.setText("0 %");
         
+        textBar1 = new Text(composite_1, SWT.BORDER | SWT.READ_ONLY | SWT.WRAP);
+        textBar1.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+        textBar1.setBounds(101, 141, 339, 18);
+        
+        hashCheck = hashCheckString.equals(genHashString);
+        if(hashCheck) {
+        	textBar2.setForeground(SWTResourceManager.getColor(SWT.COLOR_GREEN));
+        }
+        else {
+        	textBar2.setForeground(SWTResourceManager.getColor(SWT.COLOR_RED));
+        }
+        
+        dropText = new Text(composite_1, SWT.MULTI);
+        dropText.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+        dropText.setEditable(false);
+        dropText.setText("Drag and Drop File");
+        dropText.setBounds(0, 0, 464, 135);
+        
+        DropTarget target = new DropTarget(dropText, DND.DROP_DEFAULT | DND.DROP_COPY | DND.DROP_MOVE);
+        target.setTransfer(new Transfer[]{FileTransfer.getInstance(),
+				TextTransfer.getInstance()});
+		target.addDropListener(new DropTargetAdapter() 
+		{
+			FileTransfer fileTransfer = FileTransfer.getInstance();
+			public void dragEnter(DropTargetEvent e) 
+			{
+				if (e.detail == DND.DROP_DEFAULT) 
+					e.detail = DND.DROP_COPY;
+			}
+
+			public void dragOperationChanged(DropTargetEvent e) {}
+
+			public void drop(DropTargetEvent e) 
+			{
+				if (fileTransfer.isSupportedType(e.currentDataType)) 
+				{
+					String[] files = (String[]) e.data;
+					if (files != null && files.length > 0) 
+					{
+						System.out.println(files[0]);
+					}
+				}
+			}
+		});
+		
         TabItem tabItem = new TabItem(tabFolder, 0);
         tabItem.setText("AES256 Cryption");
-        tabItem.setImage(SWTResourceManager.getImage(MainUi.class, "/com/sun/java/swing/plaf/windows/icons/HardDrive.gif"));
+        tabItem.setImage(SWTResourceManager.getImage(MainUI.class, "/com/sun/java/swing/plaf/windows/icons/HardDrive.gif"));
         
         Composite composite_2 = new Composite(tabFolder, SWT.NONE);
         tabItem.setControl(composite_2);
         
-        Button Button2 = new Button(composite_2, SWT.NONE);
-        Button2.setBounds(10, 182, 444, 32);
-        Button2.setText("Decrypt");
+        Button Button1 = new Button(composite_2, SWT.NONE);
+        Button1.setSelection(true);
+        Button1.setBounds(10, 156, 216, 58);
+        Button1.setText("Encrypt");
         
-        Button btnNewButton_1 = new Button(composite_2, SWT.NONE);
-        btnNewButton_1.setSelection(true);
-        btnNewButton_1.setBounds(10, 144, 444, 32);
-        btnNewButton_1.setText("Encrypt");
+        Button btnAESDecrypt = new Button(composite_2, SWT.NONE);
+        btnAESDecrypt.setBounds(238, 156, 216, 58);
+        btnAESDecrypt.setText("Decrypt");
         
-        Label Label4 = new Label(composite_2, SWT.NONE);
-        Label4.setFont(SWTResourceManager.getFont("Arial", 11, SWT.NORMAL));
-        Label4.setText("Output (.aes)");
-        Label4.setBounds(10, 112, 84, 15);
+        Label lbOutput = new Label(composite_2, SWT.NONE);
+        lbOutput.setFont(SWTResourceManager.getFont("Arial", 11, SWT.NORMAL));
+        lbOutput.setText("Output (.aes)");
+        lbOutput.setBounds(22, 133, 84, 15);
         
-        textBar3 = new Text(composite_2, SWT.BORDER);
-        textBar3.setBounds(112, 112, 342, 18);
+        tbOutputText = new Text(composite_2, SWT.BORDER);
+        tbOutputText.setBounds(112, 132, 342, 18);
         
         Label Label5 = new Label(composite_2, SWT.NONE);
         Label5.setText("Drag and Drop File");
         Label5.setFont(SWTResourceManager.getFont("Arial", 15, SWT.NORMAL));
         Label5.setAlignment(SWT.CENTER);
-        Label5.setBounds(0, 40, 464, 32);
+        Label5.setBounds(0, 64, 464, 26);
+        
+        DropTarget target2 = new DropTarget(composite_2, DND.DROP_COPY);
 
-//        Canvas canvas = new Canvas(shell, SWT.NONE);
-//
-//        canvas.addPaintListener(new PaintListener() {
-//          public void paintControl(PaintEvent e) {
-//
-//            e.gc.setForeground(display.getSystemColor(SWT.COLOR_BLUE));
-//            e.gc.drawText("I'm in blue!",10,10);        
-//          }
-//        });
-        
-//        
-        // Hashing test
-        System.out.println("SHA-256 hash : " + hash.generateHash(testkey));
-        
-        // AES_256 test
-        //System.out.println("AES-256 decrypt : " + aes.encrypt(testkey));
-        
         shell.open();
         
         while (!shell.isDisposed()) {

@@ -12,21 +12,12 @@ public class SHA {
 		MessageDigest md = MessageDigest.getInstance("SHA-256");
 		md.update(msg.getBytes());
 		
-		return bytesToHex(md.digest());
-	}
-	
-	public static String bytesToHex(byte[] bytes) {
-		StringBuilder builder = new StringBuilder();
-		for (byte b: bytes) {
-			
-			builder.append(String.format("%02x", b));
-		}
-		System.out.print(builder);
-		return builder.toString();
-	}
-	
-	public String generateFileHash(File file) throws IOException, NoSuchAlgorithmException {
+		IntegrityCheckUtil util = new IntegrityCheckUtil();
 		
+		return util.bytesToHex(md.digest());
+	}
+
+	public String generateFileHash(File file) throws IOException, NoSuchAlgorithmException {
 		MessageDigest md = MessageDigest.getInstance("SHA-256");
 		FileInputStream fis = new FileInputStream(file);
 		
@@ -45,7 +36,7 @@ public class SHA {
 		for(int i=0; i< bytes.length ;i++) {
 			sb.append(Integer.toString((bytes[i] & 0xff) + 0x100, 16).substring(1));
 		}
-
+		
 		return sb.toString();
 	}
 }

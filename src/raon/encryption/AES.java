@@ -1,37 +1,45 @@
 package raon.encryption;
 
+//import java.security.MessageDigest;
+//import java.util.Arrays;
 import java.util.Base64;
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
-import org.apache.commons.codec.binary.Hex;
-
 public class AES {
-
-    public String alg = "AES/CBC/PKCS5Padding";
-    public String key = "f6a5cd16ea3dfa2587ab5dd3503d283a49ba039270c023d54e65d2a1ae9f4ae4"; // 64 byte
-    // 1111011010100101110011010001011011101010001111011111101000100101100001111010101101011101110100110101000000111101001010000011101001001001101110100000001110010010011100001100000000100011110101010100111001100101110100101010000110101110100111110100101011100100
-    public String iv = ""; //16bits // key.substring(0, 16)
-    byte[] bytes = key.getBytes();
+    private String alg = "AES/CBC/PKCS5Padding";
     
+    // key : "RAONTECH" SHA256 hash value
+    private static final byte[] key = new byte[] {
+		(byte)0xf6, (byte)0xa5, (byte)0xcd, (byte)0x16, (byte)0xea, (byte)0x3d, (byte)0xfa, (byte)0x25,
+		(byte)0x87, (byte)0xab, (byte)0x5d, (byte)0xd3, (byte)0x50, (byte)0x3d, (byte)0x28, (byte)0x3a,
+		(byte)0x49, (byte)0xba, (byte)0x03, (byte)0x92, (byte)0x70, (byte)0xc0, (byte)0x23, (byte)0xd5,
+		(byte)0x4e, (byte)0x65, (byte)0xd2, (byte)0xa1, (byte)0xae, (byte)0x9f, (byte)0x4a, (byte)0xe4
+    };
+    // iv : 0x00 all padding
+    private static final byte[] iv = new byte[] {
+    		(byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, 
+    		(byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, 
+        };
+
     public String encrypt(String text) throws Exception {
         Cipher cipher = Cipher.getInstance(alg);
-        SecretKeySpec keySpec = new SecretKeySpec(key.getBytes(), "AES");
-        //IvParameterSpec ivParamSpec = new IvParameterSpec(iv.getBytes());
-        cipher.init(Cipher.ENCRYPT_MODE, keySpec);
+        SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
+        IvParameterSpec ivParamSpec = new IvParameterSpec(iv);
+        cipher.init(Cipher.ENCRYPT_MODE, keySpec, ivParamSpec);
 
         byte[] encrypted = cipher.doFinal(text.getBytes("UTF-8"));
         return Base64.getEncoder().encodeToString(encrypted);
     }
 
-    public String decrypt(String cipherText) throws Exception {
+	public String decrypt(String text) throws Exception {
         Cipher cipher = Cipher.getInstance(alg);
-        SecretKeySpec keySpec = new SecretKeySpec(key.getBytes(), "AES");
-        IvParameterSpec ivParamSpec = new IvParameterSpec(iv.getBytes());
+        SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
+        IvParameterSpec ivParamSpec = new IvParameterSpec(iv);
         cipher.init(Cipher.DECRYPT_MODE, keySpec, ivParamSpec);
 
-        byte[] decodedBytes = Base64.getDecoder().decode(cipherText);
+        byte[] decodedBytes = Base64.getDecoder().decode(text);
         byte[] decrypted = cipher.doFinal(decodedBytes);
         return new String(decrypted, "UTF-8");
     }
