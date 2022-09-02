@@ -7,24 +7,24 @@ public class ConsoleTest {
 	public static void main(String[] args) throws Exception {
 		// SHA text hash test
 		HashGenerator hash = new HashGenerator();
-		String msg = hash.generateHash("RAONTECH");
-		if(!msg.equals("f6a5cd16ea3dfa2587ab5dd3503d283a49ba039270c023d54e65d2a1ae9f4ae4"))
+		String msg = hash.generateHash("Test Text");
+		if(!msg.equals("22dca5472c7e6de258c511726ba115736711e29e1726382719607c59a08a2661"))
 			System.out.println("SHA text hash error");
 		
 		// SHA file hash test
-		File file= new File("resource//TestFile.txt");
+		File file = new File("resource//TestFileSHA.txt");
 		msg = hash.generateFileHash(file);
-		if(!msg.equals("f6a5cd16ea3dfa2587ab5dd3503d283a49ba039270c023d54e65d2a1ae9f4ae4"))
+		if(!msg.equals("22dca5472c7e6de258c511726ba115736711e29e1726382719607c59a08a2661"))
 			System.out.println("SHA file hash error");
 		
-		// AES256 Encrypt Test
-		AES256Controller aes = new AES256Controller();
-		msg = aes.encrypt("Test Text");
+		// AES256 Encrypt Text Test
+		Aes256Codec aes = new Aes256Codec();
+		msg = aes.encryptString("Test Text");
 		if(!msg.equals("JbwrSuttTa9v+dQdRigFCw=="))
 			System.out.println("AES256 encrypt error");
 		
-		// AES256 Decrypt Test
-		msg = aes.decrypt("JbwrSuttTa9v+dQdRigFCw==");
+		// AES256 Decrypt Text Test
+		msg = aes.decryptString("JbwrSuttTa9v+dQdRigFCw==");
 		if(!msg.equals("Test Text"))
 			System.out.println("AES256 decrypt error");
 		

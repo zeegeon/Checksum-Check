@@ -11,33 +11,25 @@ import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 import org.eclipse.wb.swt.SWTResourceManager;
 
-import raon.encryption.AES256Controller;
+import raon.encryption.Aes256Codec;
 import raon.encryption.HashGenerator;
-import raon.encryption.IntegrityCheckUtil;
 
 import org.eclipse.swt.dnd.*;
-import org.eclipse.swt.events.VerifyListener;
-import org.eclipse.swt.events.VerifyEvent;
-import org.eclipse.swt.events.ModifyListener;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.MouseAdapter;
-import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.*;
 
 public class MainUI {
-	
-	private static Text textBar1;
-	private static Text textBar2;
-	private static Text tbOutputText;
-	
-	private static int progressPercent=0;
-	private static String hashSHA;
+	private static String shaHash;
 	private static String pathAES;
-	private static String AESString;
 	
     public static void main(String[] args) {
         Display display = new Display();
         Shell shell = new Shell(display);
-        
+        shell.addDragDetectListener(new DragDetectListener() {
+        	public void dragDetected(DragDetectEvent arg0) {
+        		System.out.println("drag");
+        	}
+        });
+                
         // Shell setup
         shell.setText("File Integrity Check");
         shell.setImage(new Image(display, "resource//logo.png"));
@@ -53,83 +45,95 @@ public class MainUI {
 
         shell.setLayout(new FillLayout());
         
-        Composite composite = new Composite(shell, SWT.NONE);
-        composite.setLayout(new FormLayout());
+        FormData test = new FormData();
+        test.bottom = new FormAttachment(100, 0);
+        test.right = new FormAttachment(100, -10);
+        int progressPercent = 0;
         
-        // =============================================== Tab Folder 1 =====================================
-        TabFolder tabFolder = new TabFolder(composite, SWT.NONE);
-        FormData fd_tabFolder = new FormData();
-        fd_tabFolder.bottom = new FormAttachment(0, 258);
-        fd_tabFolder.right = new FormAttachment(0, 478);
-        fd_tabFolder.top = new FormAttachment(0, 10);
-        fd_tabFolder.left = new FormAttachment(0, 10);
-        tabFolder.setLayoutData(fd_tabFolder);
+        Composite compositeMain = new Composite(shell, SWT.NONE);
+        compositeMain.setLayout(new FormLayout());
         
-        TabItem tabHash = new TabItem(tabFolder, SWT.NONE);
-        tabHash.setImage(SWTResourceManager.getImage(MainUI.class, "/javax/swing/plaf/metal/icons/ocean/collapsed.gif"));
-        tabHash.setText("Hash Generator");
+        // ===================================== Tab Folder 1 =====================================
+        TabFolder TabFolder = new TabFolder(compositeMain, SWT.NONE);
+        FormData fd_TabFolder = new FormData();
+        fd_TabFolder.bottom = new FormAttachment(100, -10);
+        fd_TabFolder.right = new FormAttachment(100, -10);
+        fd_TabFolder.top = new FormAttachment(0, 10);
+        fd_TabFolder.left = new FormAttachment(0, 10);
+        TabFolder.setLayoutData(fd_TabFolder);
+        //test.top = new FormAttachment(0, 10);
+        //test.left = new FormAttachment(0, 10);
+//        FormData fd_TabFolder = new FormData();
+//        fd_TabFolder.bottom = new FormAttachment(0, 258);
+//        fd_TabFolder.right = new FormAttachment(0, 478);
+//        fd_TabFolder.top = new FormAttachment(0, 10);
+//        fd_TabFolder.left = new FormAttachment(0, 10);
+//        TabFolder.setLayoutData(fd_TabFolder);
         
-        Composite composite_1 = new Composite(tabFolder, SWT.NONE);
-        tabHash.setControl(composite_1);
         
-        Label Label1 = new Label(composite_1, SWT.NONE);
-        Label1.setAlignment(SWT.CENTER);
-        Label1.setBounds(0, 141, 62, 21);
-        Label1.setText("Gen Hash");
+        TabItem tabHashTab = new TabItem(TabFolder, SWT.NONE);
+        tabHashTab.setImage(SWTResourceManager.getImage(MainUI.class, "/javax/swing/plaf/metal/icons/ocean/collapsed.gif"));
+        tabHashTab.setText("Hash Generator");
         
-        Label Label2 = new Label(composite_1, SWT.NONE);
-        Label2.setAlignment(SWT.CENTER);
-        Label2.setBounds(0, 165, 62, 21);
-        Label2.setText("Hash Check");
-
-        textBar1 = new Text(composite_1, SWT.BORDER | SWT.READ_ONLY | SWT.WRAP);
-        textBar1.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-        textBar1.setBounds(68, 141, 386, 18);
+        Composite compositeHash = new Composite(TabFolder, SWT.NONE);
+        tabHashTab.setControl(compositeHash);
         
-        textBar1.addModifyListener(new ModifyListener() {
-        	public void modifyText(ModifyEvent arg0) {
-                if(textBar2.getText().equals(hashSHA)) {
-                	textBar2.setForeground(SWTResourceManager.getColor(SWT.COLOR_BLUE)); //32 자리 넘을 때 막는 코드
-                }
-                else {
-                	textBar2.setForeground(SWTResourceManager.getColor(SWT.COLOR_RED));
-                }
-        	}
-        });
+        Label lbGenHash = new Label(compositeHash, SWT.NONE);
+        lbGenHash.setAlignment(SWT.CENTER);
+        lbGenHash.setBounds(0, 141, 62, 21);
+        lbGenHash.setText("Gen Hash");
         
-        textBar2 = new Text(composite_1, SWT.BORDER | SWT.WRAP);
-        textBar2.setBounds(68, 165, 386, 18);
+        Label lbHashCheck = new Label(compositeHash, SWT.NONE);
+        lbHashCheck.setAlignment(SWT.CENTER);
+        lbHashCheck.setBounds(0, 165, 62, 21);
+        lbHashCheck.setText("Hash Check");
         
-        textBar2.addModifyListener(new ModifyListener() {
-        	public void modifyText(ModifyEvent arg0) {
-        		System.out.println(textBar2.getText());
-        		
-                if(textBar2.getText().equals(hashSHA)) {
-                	textBar2.setForeground(SWTResourceManager.getColor(SWT.COLOR_BLUE));
-                }
-                else {
-                	textBar2.setForeground(SWTResourceManager.getColor(SWT.COLOR_RED));
-                }
-        	}
-        });
+                Text tbGenHash = new Text(compositeHash, SWT.BORDER | SWT.READ_ONLY | SWT.WRAP);
+                tbGenHash.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+                tbGenHash.setBounds(68, 141, 386, 18);
+                
+                Text tbHashCheck = new Text(compositeHash, SWT.BORDER | SWT.WRAP);
+                tbHashCheck.setBounds(68, 165, 386, 18);
+                
+                tbGenHash.addModifyListener(new ModifyListener() {
+	    	public void modifyText(ModifyEvent arg0) {
+	            if(tbHashCheck.getText().equals(shaHash)) {
+	            	tbHashCheck.setForeground(SWTResourceManager.getColor(SWT.COLOR_BLUE));
+	            }
+	            else {
+	            	tbHashCheck.setForeground(SWTResourceManager.getColor(SWT.COLOR_RED));
+	            }
+	    	}
+                });
+                
+                tbHashCheck.addModifyListener(new ModifyListener() {
+                	public void modifyText(ModifyEvent arg0) {
+                        if(tbHashCheck.getText().equals(shaHash)) {
+                        	tbHashCheck.setForeground(SWTResourceManager.getColor(SWT.COLOR_BLUE));
+                        }
+                        else {
+                        	tbHashCheck.setForeground(SWTResourceManager.getColor(SWT.COLOR_RED));
+                        }
+                	}
+                });
+                
+                ProgressBar pbHashBar = new ProgressBar(compositeHash, SWT.NONE);
+                pbHashBar.setBounds(69, 196, 339, 18);
+                
+                Label lbProgressbar = new Label(compositeHash, SWT.NONE);
+                lbProgressbar.setBounds(24, 196, 38, 18);
+                lbProgressbar.setText(progressPercent + " %");
+                pbHashBar.setMinimum(99);
+                
+        Label lbGenHashDnd = new Label(compositeHash, SWT.NONE);
+        lbGenHashDnd.setToolTipText("Drag the file here and drop");
+        lbGenHashDnd.setFont(SWTResourceManager.getFont("Arial", 15, SWT.NORMAL));
+        lbGenHashDnd.setAlignment(SWT.CENTER);
+        lbGenHashDnd.setBounds(0, 0, 464, 135);
+        lbGenHashDnd.setText("\r\n\r\n\r\nDrag and Drop File");
         
-        ProgressBar progressBar = new ProgressBar(composite_1, SWT.NONE);
-        progressBar.setBounds(69, 196, 339, 18);
-        
-        Label progressLabel = new Label(composite_1, SWT.NONE);
-        progressLabel.setBounds(24, 196, 38, 18);
-        progressLabel.setText(progressPercent + " %");
-        progressBar.setMinimum(99);
-		
-        Label lbDrag = new Label(composite_1, SWT.NONE);
-        lbDrag.setToolTipText("Drag the file here and drop");
-        lbDrag.setFont(SWTResourceManager.getFont("Arial", 15, SWT.NORMAL));
-        lbDrag.setAlignment(SWT.CENTER);
-        lbDrag.setBounds(0, 0, 464, 135);
-        lbDrag.setText("\r\n\r\n\r\nDrag and Drop File");
-        
-        // Drag n Drop
-        DropTarget target = new DropTarget(lbDrag, DND.DROP_DEFAULT | DND.DROP_COPY | DND.DROP_MOVE);
+        // File Drag and Drop
+        DropTarget target = new DropTarget(lbGenHashDnd, DND.DROP_DEFAULT | DND.DROP_COPY | DND.DROP_MOVE);
         target.setTransfer(new Transfer[]{FileTransfer.getInstance(),
 				TextTransfer.getInstance()});
         target.addDropListener(new DropTargetAdapter() {
@@ -144,19 +148,19 @@ public class MainUI {
         	public void drop(DropTargetEvent e) {
         		if (fileTransfer.isSupportedType(e.currentDataType)) {
         			String[] files = (String[]) e.data;
-        			progressPercent = 0;
-					progressLabel.setText(progressPercent + " %");
-					progressBar.setMaximum(100*files.length);
-					progressBar.setSelection(100*files.length);
+        			int progressPercent = 0;
+					lbProgressbar.setText(progressPercent + " %");
+					pbHashBar.setMaximum(100*files.length);
+					pbHashBar.setSelection(100*files.length);
         			if (files != null && files.length > 0) {
         				File file = new File(files[0]);
         				HashGenerator hg = new HashGenerator();
 						
         				try {
-        					hashSHA = hg.generateFileHash(file);
-							textBar1.setText(hashSHA);
+        					shaHash = hg.generateFileHash(file);
+							tbGenHash.setText(shaHash);
 							
-							progressLabel.setText(100 + " %");
+							lbProgressbar.setText(100 + " %");
 						} catch (NoSuchAlgorithmException e1) {
 							e1.printStackTrace();
 						} catch (IOException e1) {
@@ -166,44 +170,51 @@ public class MainUI {
         		}
         	}
         });
-		
-        // ======================================= Tab2 ========================================
-        TabItem tbtmAesEncryption = new TabItem(tabFolder, 0);
-        tbtmAesEncryption.setText("AES256 Encryption");
-        tbtmAesEncryption.setImage(SWTResourceManager.getImage(MainUI.class, "/com/sun/java/swing/plaf/windows/icons/HardDrive.gif"));
         
-        Composite composite_2 = new Composite(tabFolder, SWT.NONE);
-        tbtmAesEncryption.setControl(composite_2);
+     // ===================================== Tab Folder 2 =====================================
+        TabItem tabAesEncoder = new TabItem(TabFolder, 0);
+        tabAesEncoder.setText("AES256 Encoder");
         
-        Button btnEncrypt = new Button(composite_2, SWT.PUSH);
-        btnEncrypt.setEnabled(false);
+        Composite compositeAes = new Composite(TabFolder, SWT.NONE);
+        tabAesEncoder.setControl(compositeAes);
+        
+        Button btnEncrypt = new Button(compositeAes, SWT.PUSH);
         btnEncrypt.setSelection(true);
-        btnEncrypt.setBounds(10, 156, 216, 58);
+        btnEncrypt.setToolTipText("Convert file to .aes file");
+        btnEncrypt.setEnabled(false);
+        btnEncrypt.setBounds(10, 156, 216, 36);
         btnEncrypt.setText("Encrypt");
         
-        Button btnAESDecrypt = new Button(composite_2, SWT.NONE);
+        Button btnAESDecrypt = new Button(compositeAes, SWT.NONE);
+        btnAESDecrypt.setSelection(true);
+        btnAESDecrypt.setToolTipText("Convert .aes file to .txt file");
         btnAESDecrypt.setEnabled(false);
-        btnAESDecrypt.setBounds(238, 156, 216, 58);
+        btnAESDecrypt.setBounds(238, 156, 216, 36);
         btnAESDecrypt.setText("Decrypt");
         
-        Label lbOutput = new Label(composite_2, SWT.NONE);
+        Label lbOutput = new Label(compositeAes, SWT.NONE);
         lbOutput.setFont(SWTResourceManager.getFont("Arial", 11, SWT.NORMAL));
         lbOutput.setText("Output (.aes)");
         lbOutput.setBounds(22, 133, 84, 15);
         
-        tbOutputText = new Text(composite_2, SWT.BORDER);
+        Text tbOutputText = new Text(compositeAes, SWT.BORDER);
         tbOutputText.setBounds(112, 132, 342, 18);
         
-        Label Label5 = new Label(composite_2, SWT.NONE);
-        Label5.setText("\r\n\r\n\r\nDrag and Drop File");
-        Label5.setFont(SWTResourceManager.getFont("Arial", 15, SWT.NORMAL));
-        Label5.setAlignment(SWT.CENTER);
-        Label5.setBounds(0, 0, 464, 130);
+        Label lbAesDnd = new Label(compositeAes, SWT.NONE);
+        lbAesDnd.setText("\r\n\r\n\r\nDrag and Drop File");
+        lbAesDnd.setFont(SWTResourceManager.getFont("Arial", 15, SWT.NORMAL));
+        lbAesDnd.setAlignment(SWT.CENTER);
+        lbAesDnd.setBounds(0, 0, 464, 130);
         
-        // Drag n Drop
-        DropTarget target2 = new DropTarget(Label5, DND.DROP_DEFAULT | DND.DROP_COPY | DND.DROP_MOVE);
+        // File Drag and Drop
+        DropTarget target2 = new DropTarget(lbAesDnd, DND.DROP_DEFAULT | DND.DROP_COPY | DND.DROP_MOVE);
         target2.setTransfer(new Transfer[]{FileTransfer.getInstance(),
 				TextTransfer.getInstance()});
+        
+        ProgressBar pbAesBar = new ProgressBar(compositeAes, SWT.SMOOTH);
+        pbAesBar.setMinimum(90);
+        pbAesBar.setBounds(10, 199, 444, 15);
+        
         target2.addDropListener(new DropTargetAdapter() {
         	FileTransfer fileTransfer = FileTransfer.getInstance();
         	public void dragEnter(DropTargetEvent e) {
@@ -218,7 +229,6 @@ public class MainUI {
         			String[] files = (String[]) e.data;
         			
         			if (files != null && files.length > 0) {
-        				//File file = new File(files[0]);
         				pathAES = files[0];
     					
     					String buffer;
@@ -229,7 +239,6 @@ public class MainUI {
     						btnEncrypt.setEnabled(false);
     						btnAESDecrypt.setEnabled(true);
     						buffer = ".txt";
-    						//pathAES = pathAES.substring(0, pathAES.length()-4).concat(buffer);
     						tbOutputText.setText(pathAES.substring(0, pathAES.length()-4).concat(buffer));
     					}
     					else
@@ -237,39 +246,36 @@ public class MainUI {
     						btnEncrypt.setEnabled(true);
     						btnAESDecrypt.setEnabled(false);
     						buffer = ".aes";
-    						//pathAES = pathAES.substring(0, pathAES.length()-4).concat(buffer);
     						tbOutputText.setText(pathAES.substring(0, pathAES.length()-4).concat(buffer));
     					}
         			}
         		}
         	}
         });
-        
-        btnEncrypt.addMouseListener(new MouseAdapter() {
+        btnEncrypt.addSelectionListener(new SelectionAdapter() {
         	@Override
-        	public void mouseUp(MouseEvent e) {
-        		System.out.println("btn1 down");
-        		AES256Controller ac = new AES256Controller();
-        		//pathAES = tbOutputText.getText();
-        		
-        		System.out.println("AES file path : " + pathAES);
+        	public void widgetSelected(SelectionEvent e) {
+        		pbAesBar.setSelection(0);
+        		Aes256Codec ac = new Aes256Codec();
         		
         		try {
-					ac.encryptFile(pathAES, tbOutputText.getText());
+					ac.encryptFile(pathAES);
+					pbAesBar.setSelection(100);
 				} catch (Exception e2) {
 					e2.printStackTrace();
 				}
         	}
         });
         
-        btnAESDecrypt.addMouseListener(new MouseAdapter() {
+        btnAESDecrypt.addSelectionListener(new SelectionAdapter() {
         	@Override
-        	public void mouseUp(MouseEvent e) {
-        		System.out.println("btn2 down");
-        		AES256Controller ac = new AES256Controller();
+        	public void widgetSelected(SelectionEvent e) {
+        		pbAesBar.setSelection(0);
+        		Aes256Codec ac = new Aes256Codec();
         		
         		try {
-					ac.decryptFile(pathAES, tbOutputText.getText());
+					ac.decryptFile(pathAES);
+					pbAesBar.setSelection(100);
 				} catch (Exception e1) {
 					e1.printStackTrace();
 				}

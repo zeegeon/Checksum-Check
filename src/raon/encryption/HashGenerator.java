@@ -7,7 +7,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 public class HashGenerator {
-
+	// String Hash generator
 	public String generateHash(String msg) throws NoSuchAlgorithmException {
 		MessageDigest md = MessageDigest.getInstance("SHA-256");
 		md.update(msg.getBytes());
@@ -16,7 +16,7 @@ public class HashGenerator {
 		
 		return util.bytesToHex(md.digest());
 	}
-
+	// File Hash generator
 	public String generateFileHash(File file) throws IOException, NoSuchAlgorithmException {
 		MessageDigest md = MessageDigest.getInstance("SHA-256");
 		FileInputStream fis = new FileInputStream(file);
@@ -31,7 +31,6 @@ public class HashGenerator {
 		fis.close();
 		
 		byte[] bytes = md.digest();
-		
 		StringBuilder sb = new StringBuilder();
 		for(int i=0; i< bytes.length ;i++) {
 			sb.append(Integer.toString((bytes[i] & 0xff) + 0x100, 16).substring(1));

@@ -1,19 +1,12 @@
 package raon.encryption;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import java.io.*;
 import java.util.Base64;
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
-public class AES256Controller {
+public class Aes256Codec {
     private String alg = "AES/CBC/PKCS5Padding";
     
     private static final byte[] key = new byte[] {
@@ -28,7 +21,7 @@ public class AES256Controller {
     		(byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, 
         };
 
-    public String encrypt(String text) throws Exception {
+    public String encryptString(String text) throws Exception {
         Cipher cipher = Cipher.getInstance(alg);
         SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
         IvParameterSpec ivParamSpec = new IvParameterSpec(iv);
@@ -38,7 +31,7 @@ public class AES256Controller {
         return Base64.getEncoder().encodeToString(encrypted);
     }
 
-	public String decrypt(String text) throws Exception {
+	public String decryptString(String text) throws Exception {
         Cipher cipher = Cipher.getInstance(alg);
         SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
         IvParameterSpec ivParamSpec = new IvParameterSpec(iv);
@@ -49,39 +42,32 @@ public class AES256Controller {
         return new String(decrypted, "UTF-8");
     }
 	
-	public void encryptFile(String path, String changeFilename) throws Exception { // 받는 인자 줄이자
+	public void encryptFile(String path) throws Exception {
 		Cipher cipher = Cipher.getInstance(alg);
         SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
         IvParameterSpec ivParamSpec = new IvParameterSpec(iv);
         cipher.init(Cipher.ENCRYPT_MODE, keySpec, ivParamSpec);
         
-        // path 로 파일 읽고 string에 저장
-        String encryptString = null;
-        
-        FileInputStream fileStream = null;
-        
-        fileStream = new FileInputStream(path);
-        
+        FileInputStream fileStream = new FileInputStream(path);
         byte[] readBuffer = new byte[fileStream.available()];
         while (fileStream.read(readBuffer) != -1){}
-        System.out.println("Read file contents : " + new String(readBuffer));
-
         fileStream.close();
+
+        // Byte Encryption
+        byte[] encryptedBytes = cipher.doFinal(readBuffer);
+        String writeString = Base64.getEncoder().encodeToString(encryptedBytes);
         
-        // Encryption code
-        byte[] encrypted = cipher.doFinal(readBuffer);
-        encryptString = Base64.getEncoder().encodeToString(encrypted);
-        
-        // change Filename의 이름의파일에 파일 쓰기
+        // File Write
+        String changeFileName  = path.substring(0, path.lastIndexOf(".")).concat(".aes");
 		try {
-			File file = new File(changeFilename);
+			File file = new File(changeFileName);
 			
 			if(!file.exists()) {
 				file.createNewFile();
 			}
 			FileWriter fw = new FileWriter(file);
 			PrintWriter writer = new PrintWriter(fw);
-			writer.write(encryptString);
+			writer.write(writeString);
 			writer.close();
 			
 		} catch (IOException e) {
@@ -89,39 +75,33 @@ public class AES256Controller {
 		}
 	}
 	
-	public void decryptFile(String path, String changeFilename) throws Exception {
+	public void decryptFile(String path) throws Exception {
 		Cipher cipher = Cipher.getInstance(alg);
         SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
         IvParameterSpec ivParamSpec = new IvParameterSpec(iv);
         cipher.init(Cipher.DECRYPT_MODE, keySpec, ivParamSpec);
-
-        // path 로 파일 읽고 string에 저장
-        String decryptString = null;
         
-        FileInputStream fileStream = null;
-        fileStream = new FileInputStream(path);
-        
+        FileInputStream fileStream = new FileInputStream(path);
         byte[] readBuffer = new byte[fileStream.available()];
         while (fileStream.read(readBuffer) != -1){}
-        System.out.println(new String(readBuffer));
-
         fileStream.close();
         
+        // Byte Decryption 
         byte[] decodedBytes = Base64.getDecoder().decode(readBuffer);
         byte[] decrypted = cipher.doFinal(decodedBytes);
-        decryptString = new String(decrypted, "UTF-8");
+        String writeString = new String(decrypted, "UTF-8");
         
-        System.out.println("decryptString : " + decryptString);
-        // change Filename의 이름의파일에 파일 쓰기
+        // File Write
+        String changeFileName  = path.substring(0, path.lastIndexOf(".")).concat(".txt");
 		try {
-			File file = new File(changeFilename);
+			File file = new File(changeFileName);
 			
 			if(!file.exists()) {
 				file.createNewFile();
 			}
 			FileWriter fw = new FileWriter(file);
 			PrintWriter writer = new PrintWriter(fw);
-			writer.write(decryptString);
+			writer.write(writeString);
 			writer.close();
 			
 		} catch (IOException e) {
