@@ -265,7 +265,14 @@ public class MainUI {
         btnAESDecrypt.addMouseListener(new MouseAdapter() {
         	@Override
         	public void mouseUp(MouseEvent e) {
-        		System.out.println("btn2");
+        		System.out.println("btn2 down");
+        		AES256Controller ac = new AES256Controller();
+        		
+        		try {
+					ac.decryptFile(pathAES, tbOutputText.getText());
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
         	}
         });
         
