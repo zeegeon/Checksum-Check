@@ -11,7 +11,9 @@ import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 import org.eclipse.wb.swt.SWTResourceManager;
 
+import raon.encryption.AES256Controller;
 import raon.encryption.HashGenerator;
+import raon.encryption.IntegrityCheckUtil;
 
 import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.events.VerifyListener;
@@ -30,6 +32,7 @@ public class MainUI {
 	private static int progressPercent=0;
 	private static String hashSHA;
 	private static String pathAES;
+	private static String AESString;
 	
     public static void main(String[] args) {
         Display display = new Display();
@@ -112,13 +115,11 @@ public class MainUI {
         
         ProgressBar progressBar = new ProgressBar(composite_1, SWT.NONE);
         progressBar.setBounds(69, 196, 339, 18);
-        progressBar.setSelection(progressPercent);
         
         Label progressLabel = new Label(composite_1, SWT.NONE);
         progressLabel.setBounds(24, 196, 38, 18);
         progressLabel.setText(progressPercent + " %");
         progressBar.setMinimum(99);
-		
 		
         Label lbDrag = new Label(composite_1, SWT.NONE);
         lbDrag.setToolTipText("Drag the file here and drop");
@@ -144,7 +145,6 @@ public class MainUI {
         		if (fileTransfer.isSupportedType(e.currentDataType)) {
         			String[] files = (String[]) e.data;
         			progressPercent = 0;
-        			//progressBar.setSelection(progressPercent);
 					progressLabel.setText(progressPercent + " %");
 					progressBar.setMaximum(100*files.length);
 					progressBar.setSelection(100*files.length);
@@ -175,17 +175,11 @@ public class MainUI {
         Composite composite_2 = new Composite(tabFolder, SWT.NONE);
         tbtmAesEncryption.setControl(composite_2);
         
-        Button Button1 = new Button(composite_2, SWT.PUSH);
-        Button1.addMouseListener(new MouseAdapter() {
-        	@Override
-        	public void mouseUp(MouseEvent e) {
-        		System.out.println("print");
-        	}
-        });
-        Button1.setEnabled(false);
-        Button1.setSelection(true);
-        Button1.setBounds(10, 156, 216, 58);
-        Button1.setText("Encrypt");
+        Button btnEncrypt = new Button(composite_2, SWT.PUSH);
+        btnEncrypt.setEnabled(false);
+        btnEncrypt.setSelection(true);
+        btnEncrypt.setBounds(10, 156, 216, 58);
+        btnEncrypt.setText("Encrypt");
         
         Button btnAESDecrypt = new Button(composite_2, SWT.NONE);
         btnAESDecrypt.setEnabled(false);
@@ -224,29 +218,54 @@ public class MainUI {
         			String[] files = (String[]) e.data;
         			
         			if (files != null && files.length > 0) {
-        				File file = new File(files[0]);
+        				//File file = new File(files[0]);
         				pathAES = files[0];
-        				System.out.println(pathAES);
-    					tbOutputText.setText(pathAES);
     					
     					String buffer;
     					buffer = pathAES.substring(pathAES.length()-4, pathAES.length());
     					
-    					if(buffer.equals(".txt"))
+    					if(buffer.equals(".aes"))
     					{
-    						Button1.setEnabled(true);
-    						btnAESDecrypt.setEnabled(false);
-    					}
-    					else if(buffer.equals(".aes"))
-    					{
-    						Button1.setEnabled(false);
+    						btnEncrypt.setEnabled(false);
     						btnAESDecrypt.setEnabled(true);
+    						buffer = ".txt";
+    						//pathAES = pathAES.substring(0, pathAES.length()-4).concat(buffer);
+    						tbOutputText.setText(pathAES.substring(0, pathAES.length()-4).concat(buffer));
     					}
-    					
-    					System.out.println(buffer);
-    					
+    					else
+    					{
+    						btnEncrypt.setEnabled(true);
+    						btnAESDecrypt.setEnabled(false);
+    						buffer = ".aes";
+    						//pathAES = pathAES.substring(0, pathAES.length()-4).concat(buffer);
+    						tbOutputText.setText(pathAES.substring(0, pathAES.length()-4).concat(buffer));
+    					}
         			}
         		}
+        	}
+        });
+        
+        btnEncrypt.addMouseListener(new MouseAdapter() {
+        	@Override
+        	public void mouseUp(MouseEvent e) {
+        		System.out.println("btn1 down");
+        		AES256Controller ac = new AES256Controller();
+        		//pathAES = tbOutputText.getText();
+        		
+        		System.out.println("AES file path : " + pathAES);
+        		
+        		try {
+					ac.encryptFile(pathAES, tbOutputText.getText());
+				} catch (Exception e2) {
+					e2.printStackTrace();
+				}
+        	}
+        });
+        
+        btnAESDecrypt.addMouseListener(new MouseAdapter() {
+        	@Override
+        	public void mouseUp(MouseEvent e) {
+        		System.out.println("btn2");
         	}
         });
         

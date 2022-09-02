@@ -34,24 +34,4 @@ public class IntegrityCheckUtil {
 //    }
 //    return data;
 //}
-	
-	public void wirteFile(String path, String words) {
-		try {
-			File file = new File(path);
-			
-			if(!file.exists()) {
-				file.createNewFile();
-			}
-			
-			FileWriter fw = new FileWriter(file);
-			PrintWriter writer = new PrintWriter(fw);
-			
-			writer.write(words);
-			
-			writer.close();
-			
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
 }

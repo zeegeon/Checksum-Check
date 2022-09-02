@@ -1,5 +1,13 @@
 package raon.encryption;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
@@ -40,4 +48,43 @@ public class AES256Controller {
         byte[] decrypted = cipher.doFinal(decodedBytes);
         return new String(decrypted, "UTF-8");
     }
+	
+	public void encryptFile(String path, String changeFilename) throws Exception {
+		Cipher cipher = Cipher.getInstance(alg);
+        SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
+        IvParameterSpec ivParamSpec = new IvParameterSpec(iv);
+        cipher.init(Cipher.ENCRYPT_MODE, keySpec, ivParamSpec);
+        
+        // path 로 파일 읽고 string에 저장
+        String encryptString = null;
+        
+        FileInputStream fileStream = null;
+        
+        fileStream = new FileInputStream(path);
+        
+        byte[] readBuffer = new byte[fileStream.available()];
+        while (fileStream.read(readBuffer) != -1){}
+        System.out.println(new String(readBuffer)); 
+
+        fileStream.close();
+        
+        byte[] encrypted = cipher.doFinal(readBuffer);
+        encryptString = Base64.getEncoder().encodeToString(encrypted);
+        
+        // change Filename의 이름의파일에 파일 쓰기
+		try {
+			File file = new File(changeFilename);
+			
+			if(!file.exists()) {
+				file.createNewFile();
+			}
+			FileWriter fw = new FileWriter(file);
+			PrintWriter writer = new PrintWriter(fw);
+			writer.write(encryptString);
+			writer.close();
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 }
