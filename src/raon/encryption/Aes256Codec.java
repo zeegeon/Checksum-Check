@@ -20,7 +20,8 @@ public class Aes256Codec {
     		(byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, 
     		(byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, 
         };
-
+    
+    // String Encrypt
     public String encryptString(String text) throws Exception {
         Cipher cipher = Cipher.getInstance(alg);
         SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
@@ -30,7 +31,8 @@ public class Aes256Codec {
         byte[] encrypted = cipher.doFinal(text.getBytes("UTF-8"));
         return Base64.getEncoder().encodeToString(encrypted);
     }
-
+    
+    // String Decrypt
 	public String decryptString(String text) throws Exception {
         Cipher cipher = Cipher.getInstance(alg);
         SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
@@ -42,6 +44,7 @@ public class Aes256Codec {
         return new String(decrypted, "UTF-8");
     }
 	
+	// File Encrypt
 	public void encryptFile(String path) throws Exception {
 		Cipher cipher = Cipher.getInstance(alg);
         SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
@@ -75,6 +78,7 @@ public class Aes256Codec {
 		}
 	}
 	
+	// File Decrypt
 	public void decryptFile(String path) throws Exception {
 		Cipher cipher = Cipher.getInstance(alg);
         SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
