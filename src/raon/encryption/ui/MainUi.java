@@ -1,6 +1,5 @@
 package raon.encryption.ui;
 
-
 import java.io.File;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
@@ -9,13 +8,12 @@ import org.eclipse.swt.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.dnd.*;
+import org.eclipse.swt.events.*;
 import org.eclipse.wb.swt.SWTResourceManager;
 
 import raon.encryption.Aes256Codec;
 import raon.encryption.HashGenerator;
-
-import org.eclipse.swt.dnd.*;
-import org.eclipse.swt.events.*;
 
 public class MainUI {
 	private static String shaHash;
@@ -62,15 +60,19 @@ public class MainUI {
         Label lbGenHash = new Label(compositeHash, SWT.NONE);
         lbGenHash.setAlignment(SWT.CENTER);
         lbGenHash.setText("Gen Hash");
+        lbGenHash.setBounds(0, shell.getSize().y-160, 60, 20);
         
         Label lbHashCheck = new Label(compositeHash, SWT.NONE);
         lbHashCheck.setAlignment(SWT.CENTER);
         lbHashCheck.setText("Hash Check");
+        lbHashCheck.setBounds(0, shell.getSize().y-135, 60, 20);
         
         Text tbGenHash = new Text(compositeHash, SWT.BORDER | SWT.READ_ONLY);
         tbGenHash.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+        tbGenHash.setBounds(70, shell.getSize().y-160, shell.getSize().x-115, 20);
         
         Text tbHashCheck = new Text(compositeHash, SWT.BORDER);
+        tbHashCheck.setBounds(70, shell.getSize().y-135, shell.getSize().x-115, 20);
         
         tbGenHash.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent arg0) {
@@ -99,13 +101,17 @@ public class MainUI {
         Label lbProgressbar = new Label(compositeHash, SWT.NONE);
         int progressPercent = 0;
         lbProgressbar.setText(progressPercent + " %");
+        lbProgressbar.setBounds(25, shell.getSize().y-105, 40, 20);
+        
         pbHashBar.setMinimum(99);
-                
+        pbHashBar.setBounds(70, shell.getSize().y-105, shell.getSize().x-160, 20);
+        
         Label lbGenHashDnd = new Label(compositeHash, SWT.CENTER);
         lbGenHashDnd.setToolTipText("Drag the file here and drop");
         lbGenHashDnd.setFont(SWTResourceManager.getFont("Arial", 15, SWT.NORMAL));
         lbGenHashDnd.setAlignment(SWT.CENTER|SWT.VERTICAL);
         lbGenHashDnd.setText("\r\r\rDrag and Drop File");
+        lbGenHashDnd.setBounds(0, 0, shell.getSize().x-35, shell.getSize().y-165);
         
         // File Drag and Drop
         DropTarget target = new DropTarget(lbGenHashDnd, DND.DROP_DEFAULT | DND.DROP_COPY | DND.DROP_MOVE);
@@ -153,7 +159,7 @@ public class MainUI {
         Composite compositeAes = new Composite(TabFolder, SWT.NONE);
         tabAesEncoder.setControl(compositeAes);
         
-        Button btnEncrypt = new Button(compositeAes, SWT.PUSH);
+        Button btnEncrypt = new Button(compositeAes, SWT.TOGGLE);
         btnEncrypt.setToolTipText("Convert file to .aes file");
         btnEncrypt.setEnabled(false);
         btnEncrypt.setText("Encrypt");
@@ -162,17 +168,21 @@ public class MainUI {
         btnAESDecrypt.setToolTipText("Convert .aes file to .txt file");
         btnAESDecrypt.setEnabled(false);
         btnAESDecrypt.setText("Decrypt");
-       
+        btnAESDecrypt.setBounds(shell.getSize().x/2-10, shell.getSize().y - 145, shell.getSize().x/2-40, 40);
+        
         Label lbOutput = new Label(compositeAes, SWT.NONE);
         lbOutput.setFont(SWTResourceManager.getFont("Arial", 11, SWT.NORMAL));
         lbOutput.setText("Output (.aes)");
+        lbOutput.setBounds(20, shell.getSize().y - 170, 85, 20);
         
         Text tbOutputText = new Text(compositeAes, SWT.BORDER);
+        tbOutputText.setBounds(110, shell.getSize().y - 170, shell.getSize().x-160, 20);
         
         Label lbAesDnd = new Label(compositeAes, SWT.NONE);
         lbAesDnd.setText("\r\n\r\n\r\nDrag and Drop File");
         lbAesDnd.setFont(SWTResourceManager.getFont("Arial", 15, SWT.NORMAL));
         lbAesDnd.setAlignment(SWT.CENTER);
+        lbAesDnd.setBounds(0, 0, 465, 130);
         
         // File Drag and Drop
         DropTarget target2 = new DropTarget(lbAesDnd, DND.DROP_DEFAULT | DND.DROP_COPY | DND.DROP_MOVE);
@@ -180,8 +190,9 @@ public class MainUI {
 				TextTransfer.getInstance()});
         
         ProgressBar pbAesBar = new ProgressBar(compositeAes, SWT.SMOOTH);
+        pbAesBar.setBounds(10, shell.getSize().y - 100, shell.getSize().x-60, 20);
         pbAesBar.setMinimum(90);
-        
+        btnEncrypt.setBounds(10, shell.getSize().y - 145, shell.getSize().x/2-30, 40);
         target2.addDropListener(new DropTargetAdapter() {
         	FileTransfer fileTransfer = FileTransfer.getInstance();
         	public void dragEnter(DropTargetEvent e) {
@@ -247,10 +258,10 @@ public class MainUI {
         	}
         });
         
+        // Resize components
         shell.addControlListener(new ControlAdapter() {
         	@Override
         	public void controlResized(ControlEvent e) {
-        		System.out.println(shell.getSize());
         		if(!(shell.getSize().x < 250 | shell.getSize().y < 260)) {
         			tbGenHash.setBounds(70, shell.getSize().y-160, shell.getSize().x-115, 20);
             		lbGenHash.setBounds(0, shell.getSize().y-160, 60, 20);
