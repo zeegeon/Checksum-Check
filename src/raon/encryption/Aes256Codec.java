@@ -90,7 +90,7 @@ public class Aes256Codec {
         while (fileStream.read(readBuffer) != -1){}
         fileStream.close();
         
-        // Byte Decryption 
+        // Byte Decryption
         byte[] decodedBytes = Base64.getDecoder().decode(readBuffer);
         byte[] decrypted = cipher.doFinal(decodedBytes);
         String writeString = new String(decrypted, "UTF-8");
@@ -99,7 +99,6 @@ public class Aes256Codec {
         String changeFileName  = path.substring(0, path.lastIndexOf(".")).concat(".txt");
 		try {
 			File file = new File(changeFileName);
-			
 			if(!file.exists()) {
 				file.createNewFile();
 			}

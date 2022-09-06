@@ -12,9 +12,7 @@ public class HashGenerator {
 		MessageDigest md = MessageDigest.getInstance("SHA-256");
 		md.update(msg.getBytes());
 		
-		IntegrityCheckUtil util = new IntegrityCheckUtil();
-		
-		return util.bytesToHex(md.digest());
+		return IntegrityCheckUtil.bytesToHex(md.digest());
 	}
 	// File Hash generator
 	public String generateFileHash(File file) throws IOException, NoSuchAlgorithmException {
@@ -32,10 +30,12 @@ public class HashGenerator {
 		
 		byte[] bytes = md.digest();
 		StringBuilder sb = new StringBuilder();
-		for(int i=0; i< bytes.length ;i++) {
-			sb.append(Integer.toString((bytes[i] & 0xff) + 0x100, 16).substring(1));
+//		for(int i=0; i < bytes.length; i++) {
+//			sb.append(Integer.toString((bytes[i] & 0xff) + 0x100, 16).substring(1));
+//		}
+		for(byte b : bytes) {
+			sb.append(String.format("%02x", b));
 		}
-		
 		return sb.toString();
 	}
 }
