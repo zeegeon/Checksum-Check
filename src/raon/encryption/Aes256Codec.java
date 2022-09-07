@@ -7,6 +7,7 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 public class Aes256Codec {
+	
     private String alg = "AES/CBC/PKCS5Padding";
     
     private static final byte[] key = new byte[] {
@@ -52,7 +53,14 @@ public class Aes256Codec {
         cipher.init(Cipher.ENCRYPT_MODE, keySpec, ivParamSpec);
         
         FileInputStream fileStream = new FileInputStream(path);
+        
+        System.out.println("fileStream : " + fileStream);
+        System.out.println("fileStream.available : "+fileStream.available());
+        
         byte[] readBuffer = new byte[fileStream.available()];
+        
+        System.out.println("readBuffer"+readBuffer);
+        
         while (fileStream.read(readBuffer) != -1){}
         fileStream.close();
 
