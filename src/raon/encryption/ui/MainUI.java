@@ -6,9 +6,12 @@ public class MainUI {
 	
     public static void main(String[] args) {
 		Display display = new Display();
+		
 		OpenShell mainShell = new OpenShell();
+		//Test testShell = new Test();
 		
     	mainShell.openNewShell(display);
+    	//testShell.openNewShell(display);
     	
 //    	Thread thread = new Thread(new Runnable() {
 //    		public void run() {
@@ -19,6 +22,6 @@ public class MainUI {
 //    	});
 //    	thread.run();
     	
-        display.dispose();
+        //display.dispose();
         }
 }

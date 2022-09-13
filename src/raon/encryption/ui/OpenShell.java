@@ -40,7 +40,7 @@ public class OpenShell {
         		shell.redraw();
         	}
         });
-        shell.setLayout(null);
+        shell.setLayout(null); // 여기부터 레이아웃 종류 정해서 수정하기
         
         //Composite compositeMain = new Composite(shell, SWT.NONE);
         //compositeMain.setBounds(0, 0, 250, 288);
@@ -48,6 +48,7 @@ public class OpenShell {
         
         // ===================================== Tab Folder 1 =====================================
         TabFolder TabFolder = new TabFolder(shell, SWT.NONE);
+        TabFolder.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, true, 1, 1));
         TabFolder.setBounds(10, 10, 480, 268);
         //TabFolder.setBounds(0, 0, 500, 288);
         
@@ -212,6 +213,7 @@ public class OpenShell {
         			if (files != null && files.length > 0) {
         				String pathAES = files[0];
     					String buffer = pathAES.substring(pathAES.lastIndexOf("."), pathAES.length());
+    					tbOutputText.setForeground(SWTResourceManager.getColor(SWT.COLOR_BLACK));
     					if(buffer.equals(".aes")) {
     						btnEncrypt.setEnabled(false);
     						btnAESDecrypt.setEnabled(true);
@@ -241,8 +243,8 @@ public class OpenShell {
 					ac.encryptFile(tbOutputText.getText());
 					pbAesBar.setSelection(100);
 				} catch (Exception e2) {
-					//e2.printStackTrace();
 					tbOutputText.setText("Not support file type, Access denied");
+					tbOutputText.setForeground(SWTResourceManager.getColor(SWT.COLOR_RED));
 				}
         	}
         });
@@ -255,8 +257,10 @@ public class OpenShell {
         		try {
 					ac.decryptFile(tbOutputText.getText());
 					pbAesBar.setSelection(100);
-				} catch (Exception e1) {
+					System.out.println(e);
+				} catch (Exception e2) {
 					tbOutputText.setText("Not support file type, Access denied");
+					tbOutputText.setForeground(SWTResourceManager.getColor(SWT.COLOR_RED));
 				}
         	}
         });

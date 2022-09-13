@@ -59,7 +59,7 @@ public class Aes256Codec {
         
         byte[] readBuffer = new byte[fileStream.available()];
         
-        System.out.println("readBuffer"+readBuffer);
+        System.out.println("readBuffer" + readBuffer);
         
         while (fileStream.read(readBuffer) != -1){}
         fileStream.close();
