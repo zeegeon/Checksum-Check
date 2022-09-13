@@ -55,7 +55,7 @@ public class Aes256Codec {
         FileInputStream fileStream = new FileInputStream(path);
         
         System.out.println("fileStream : " + fileStream);
-        System.out.println("fileStream.available : "+fileStream.available());
+        System.out.println("fileStream.available : "+ fileStream.available());
         
         byte[] readBuffer = new byte[fileStream.available()];
         
@@ -80,7 +80,6 @@ public class Aes256Codec {
 			PrintWriter writer = new PrintWriter(fw);
 			writer.write(writeString);
 			writer.close();
-			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

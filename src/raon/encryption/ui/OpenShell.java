@@ -1,6 +1,7 @@
 package raon.encryption.ui;
 
 import java.io.*;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 import org.eclipse.swt.SWT;
@@ -12,7 +13,7 @@ import org.eclipse.swt.widgets.*;
 import org.eclipse.wb.swt.SWTResourceManager;
 
 import raon.encryption.Aes256Codec;
-import raon.encryption.HashGenerator;
+import raon.encryption.IntegrityCheckUtil;
 
 public class OpenShell {
 	/**
@@ -63,11 +64,11 @@ public class OpenShell {
         lbGenHash.setAlignment(SWT.CENTER);
         lbGenHash.setText("Gen Hash");
         //lbGenHash.setBounds(0, shell.getSize().y-160, 60, 20);
-        lbGenHash.setLocation(0, 191);
+        lbGenHash.setLocation(10, 108);
         Label lbHashCheck = new Label(compositeHash, SWT.NONE);
         lbHashCheck.setAlignment(SWT.CENTER);
         lbHashCheck.setText("Hash Check");
-        lbHashCheck.setBounds(0, 165, 60, 20);
+        lbHashCheck.setBounds(0, 135, 60, 20);
         
         Text tbGenHash = new Text(compositeHash, SWT.BORDER | SWT.READ_ONLY);
         tbGenHash.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
@@ -98,15 +99,12 @@ public class OpenShell {
         	}
         });
         
-        ProgressBar pbHashBar = new ProgressBar(compositeHash, SWT.NONE);
+        ProgressBar pbHashBar = new ProgressBar(compositeHash, SWT.SMOOTH);
+        pbHashBar.setBounds(70, shell.getSize().y-105, shell.getSize().x-115, 20);
         
         Label lbProgressbar = new Label(compositeHash, SWT.NONE);
-        int progressPercent = 0;
-        lbProgressbar.setText(progressPercent + " %");
+        lbProgressbar.setText(0 + " %");
         lbProgressbar.setBounds(25, shell.getSize().y-105, 40, 20);
-        
-        pbHashBar.setMinimum(99);
-        pbHashBar.setBounds(70, shell.getSize().y-105, shell.getSize().x-115, 20);
         
         Label lblSsdasdasd = new Label(compositeHash, SWT.CENTER);
         lblSsdasdasd.setBounds(0, 69, 467, 15);
@@ -119,6 +117,25 @@ public class OpenShell {
         lbGenHashDnd.setText("Drag and Drop File");
         lbGenHashDnd.setBounds(0, 0, 477, 154);
         
+        new Thread() {
+        	@Override
+        	public void run() {
+        		Display.getDefault().asyncExec(new Runnable() {
+                	@Override
+                	public void run() {
+                		//pbHashBar.setSelection(100);
+                	} 
+                });
+        	} 
+        }.start();
+        
+        Display.getDefault().syncExec(new Runnable() {
+        	@Override
+        	public void run() {
+        		System.out.println("Thread sync 1");
+        	} 
+        });
+       
         // File Drag and Drop
         DropTarget target = new DropTarget(lbGenHashDnd, DND.DROP_DEFAULT | DND.DROP_COPY | DND.DROP_MOVE);
         target.setTransfer(new Transfer[]{FileTransfer.getInstance(),
@@ -138,19 +155,36 @@ public class OpenShell {
         			int progressPercent = 0;
 					lbProgressbar.setText(progressPercent + " %");
 					pbHashBar.setSelection(progressPercent);
-					
-        			if (files != null && files.length > 0) {
-        				File file = new File(files[0]);
-        				HashGenerator hg = new HashGenerator();
-        				
-        				try {
-							tbGenHash.setText(hg.generateFileHash(file));
-							pbHashBar.setSelection(100);
-							lbProgressbar.setText(100 + " %");
-						} catch (NoSuchAlgorithmException e1) {
-						} catch (IOException e1) {
-							tbGenHash.setText("Not support file type, Access denied");
-						}
+        			if (files != null && files.length > 0) {   	// 파일이 크기가 0 인지 아닌지 검사하는 구문
+        				File file = new File(files[0]); 		// files[0] -> 파일경로 
+						Display.getDefault().syncExec(new Runnable() {
+    	                	@Override
+    	                	public void run() {
+								try {
+									MessageDigest md = MessageDigest.getInstance("SHA-256");
+									FileInputStream fis = new FileInputStream(file);
+									int speed = 20480;
+									int byteCount = 0;
+									int cycle = ((int)file.length() / speed)+1;
+									int ccount = 0;
+									byte[] byteArray = new byte[speed];
+									
+									pbHashBar.setMaximum(cycle);
+									
+									while((byteCount = fis.read(byteArray)) != -1) {
+										md.update(byteArray, 0, byteCount);
+										ccount++;
+										pbHashBar.setSelection(ccount);
+								        lbProgressbar.setText(100 * ccount / cycle + " %");
+									}
+									fis.close();
+									tbGenHash.setText(IntegrityCheckUtil.bytesToHex(md.digest()));
+								} catch (NoSuchAlgorithmException e) {
+								} catch (FileNotFoundException e) {
+								} catch (IOException e) {
+								}
+    	                	}
+						});
         			}
         		}
         	}
