@@ -1,5 +1,9 @@
 package raon.encryption.ui;
 
+import raon.encryption.Aes256Codec;
+import raon.encryption.HashGenerator;
+import raon.encryption.IntegrityCheckUtil;
+
 public class ProgressThread extends Thread {
 	private int gauge;
 	private String hash;

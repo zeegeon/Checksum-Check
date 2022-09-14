@@ -7,11 +7,11 @@ public class MainUI {
     public static void main(String[] args) {
 		Display display = new Display();
 		
-//		OpenShell mainShell = new OpenShell();
-//    	mainShell.openNewShell(display);
+		OpenShell mainShell = new OpenShell();
+    	mainShell.openNewShell(display);
     	
-    	Test testShell = new Test();
-    	testShell.openNewShell(display);
+    	//Test testShell = new Test();
+    	//testShell.openNewShell(display);
      	
         //display.dispose();
         }

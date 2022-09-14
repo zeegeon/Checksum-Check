@@ -64,11 +64,11 @@ public class OpenShell {
         lbGenHash.setAlignment(SWT.CENTER);
         lbGenHash.setText("Gen Hash");
         //lbGenHash.setBounds(0, shell.getSize().y-160, 60, 20);
-        lbGenHash.setLocation(10, 108);
+        lbGenHash.setLocation(0, 108);
         Label lbHashCheck = new Label(compositeHash, SWT.NONE);
         lbHashCheck.setAlignment(SWT.CENTER);
         lbHashCheck.setText("Hash Check");
-        lbHashCheck.setBounds(0, 135, 60, 20);
+        lbHashCheck.setBounds(0, 131, 60, 20);
         
         Text tbGenHash = new Text(compositeHash, SWT.BORDER | SWT.READ_ONLY);
         tbGenHash.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
@@ -106,15 +106,14 @@ public class OpenShell {
         lbProgressbar.setText(0 + " %");
         lbProgressbar.setBounds(25, shell.getSize().y-105, 40, 20);
         
-        Label lblSsdasdasd = new Label(compositeHash, SWT.CENTER);
-        lblSsdasdasd.setBounds(0, 69, 467, 15);
-        lblSsdasdasd.setText("ssdasdasd");
+        Label lbShowHashDnd = new Label(compositeHash, SWT.CENTER);
+        lbShowHashDnd.setFont(SWTResourceManager.getFont("Arial", 15, SWT.NORMAL));
+        lbShowHashDnd.setEnabled(false);
+        lbShowHashDnd.setBounds(10, 39, 467, 27);
+        lbShowHashDnd.setText("Drag and Drop File");
         
         Label lbGenHashDnd = new Label(compositeHash, SWT.HORIZONTAL | SWT.CENTER);
-        lbGenHashDnd.setForeground(SWTResourceManager.getColor(SWT.COLOR_GRAY));
         lbGenHashDnd.setToolTipText("Drag the file here and drop");
-        lbGenHashDnd.setFont(SWTResourceManager.getFont("Arial", 15, SWT.NORMAL));
-        lbGenHashDnd.setText("Drag and Drop File");
         lbGenHashDnd.setBounds(0, 0, 477, 154);
         
         new Thread() {
@@ -123,7 +122,6 @@ public class OpenShell {
         		Display.getDefault().asyncExec(new Runnable() {
                 	@Override
                 	public void run() {
-                		//pbHashBar.setSelection(100);
                 	} 
                 });
         	} 
@@ -132,7 +130,6 @@ public class OpenShell {
         Display.getDefault().syncExec(new Runnable() {
         	@Override
         	public void run() {
-        		System.out.println("Thread sync 1");
         	} 
         });
        
@@ -156,35 +153,45 @@ public class OpenShell {
 					lbProgressbar.setText(progressPercent + " %");
 					pbHashBar.setSelection(progressPercent);
         			if (files != null && files.length > 0) {   	// 파일이 크기가 0 인지 아닌지 검사하는 구문
-        				File file = new File(files[0]); 		// files[0] -> 파일경로 
-						Display.getDefault().syncExec(new Runnable() {
-    	                	@Override
-    	                	public void run() {
-								try {
-									MessageDigest md = MessageDigest.getInstance("SHA-256");
-									FileInputStream fis = new FileInputStream(file);
-									int speed = 20480;
-									int byteCount = 0;
-									int cycle = ((int)file.length() / speed)+1;
-									int ccount = 0;
-									byte[] byteArray = new byte[speed];
-									
-									pbHashBar.setMaximum(cycle);
-									
-									while((byteCount = fis.read(byteArray)) != -1) {
-										md.update(byteArray, 0, byteCount);
-										ccount++;
-										pbHashBar.setSelection(ccount);
-								        lbProgressbar.setText(100 * ccount / cycle + " %");
-									}
-									fis.close();
-									tbGenHash.setText(IntegrityCheckUtil.bytesToHex(md.digest()));
-								} catch (NoSuchAlgorithmException e) {
-								} catch (FileNotFoundException e) {
-								} catch (IOException e) {
-								}
-    	                	}
-						});
+        				File file = new File(files[0]); 		// files[0] -> 파일 절대경로
+        				
+        				new Thread() {
+        		        	@Override
+        		        	public void run() {
+        		        		Display.getDefault().asyncExec(new Runnable() {
+        		                	@Override
+        		                	public void run() {
+        		                		try {
+        									MessageDigest md = MessageDigest.getInstance("SHA-256");
+        									FileInputStream fis = new FileInputStream(file);
+        									int speed = 4096;
+        									int byteCount = 0;
+        									int cycle = ((int)file.length() / speed)+1;
+        									int ccount = 0;
+        									byte[] byteArray = new byte[speed];
+        									
+        									pbHashBar.setMaximum(cycle);
+        									
+        									while((byteCount = fis.read(byteArray)) != -1) {
+        										md.update(byteArray, 0, byteCount);
+        										ccount++;
+        										pbHashBar.setSelection(ccount);
+        								        lbProgressbar.setText(100 * ccount / cycle + " %");
+        									}
+        									lbProgressbar.setText(100 + " %");
+        									fis.close();
+        									tbGenHash.setText(IntegrityCheckUtil.bytesToHex(md.digest()));
+        								} catch (NoSuchAlgorithmException e) {
+        								} catch (FileNotFoundException e) {
+        								} catch (IOException e) {
+        									lbShowHashDnd.setForeground(SWTResourceManager.getColor(SWT.COLOR_RED));
+        									lbShowHashDnd.setText("Drag and Drop File");
+        									lbShowHashDnd.setForeground(SWTResourceManager.getColor(SWT.COLOR_GRAY));
+        								}
+        		                	} 
+        		                });
+        		        	} 
+        		        }.start();
         			}
         		}
         	}
@@ -197,6 +204,12 @@ public class OpenShell {
         Composite compositeAes = new Composite(TabFolder, SWT.NONE);
         tabAesEncoder.setControl(compositeAes);
         
+        Label lbShowAESDnd = new Label(compositeAes, SWT.CENTER);
+        lbShowAESDnd.setEnabled(false);
+        lbShowAESDnd.setFont(SWTResourceManager.getFont("Arial", 15, SWT.NORMAL));
+        lbShowAESDnd.setBounds(10, 55, 467, 27);
+        lbShowAESDnd.setText("Drag and Drop File");
+        
         Button btnEncrypt = new Button(compositeAes, SWT.NONE);
         btnEncrypt.setToolTipText("Convert file to .aes file");
         btnEncrypt.setEnabled(false);
@@ -207,7 +220,7 @@ public class OpenShell {
         btnAESDecrypt.setToolTipText("Convert .aes file to .txt file");
         btnAESDecrypt.setEnabled(false);
         btnAESDecrypt.setText("Decrypt");
-        btnAESDecrypt.setBounds(240, 168, 210, 27);
+        btnAESDecrypt.setBounds(240, 168, 222, 27);
         
         Label lbOutput = new Label(compositeAes, SWT.NONE);
         lbOutput.setText("Output (.aes)");
@@ -218,19 +231,12 @@ public class OpenShell {
         
         Label lbAesDnd = new Label(compositeAes, SWT.NONE);
         lbAesDnd.setForeground(SWTResourceManager.getColor(SWT.COLOR_GRAY));
-        lbAesDnd.setText("\r\n\r\n\r\nDrag and Drop File");
-        lbAesDnd.setFont(SWTResourceManager.getFont("Arial", 15, SWT.NORMAL));
-        lbAesDnd.setAlignment(SWT.CENTER);
         lbAesDnd.setBounds(0, 0, 465, 130);
         
         // File Drag and Drop
         DropTarget target2 = new DropTarget(lbAesDnd, DND.DROP_DEFAULT | DND.DROP_COPY | DND.DROP_MOVE);
         target2.setTransfer(new Transfer[]{FileTransfer.getInstance(),
 				TextTransfer.getInstance()});
-        
-        ProgressBar pbAesBar = new ProgressBar(compositeAes, SWT.SMOOTH);
-        pbAesBar.setBounds(10, shell.getSize().y - 100, shell.getSize().x-60, 20);
-        pbAesBar.setMinimum(90);
         
         target2.addDropListener(new DropTargetAdapter() {
         	FileTransfer fileTransfer = FileTransfer.getInstance();
@@ -245,21 +251,21 @@ public class OpenShell {
         		if (fileTransfer.isSupportedType(e.currentDataType)) {
         			String[] files = (String[]) e.data;
         			if (files != null && files.length > 0) {
-        				String pathAES = files[0];
-    					String buffer = pathAES.substring(pathAES.lastIndexOf("."), pathAES.length());
+        				String pathAES = files[0];		// 파일 이름 받기
+    					String buffer = pathAES.substring(pathAES.lastIndexOf("."), pathAES.length()); //확장자 확인
     					tbOutputText.setForeground(SWTResourceManager.getColor(SWT.COLOR_BLACK));
-    					if(buffer.equals(".aes")) {
+    					if(buffer.equals(".aes")) {		// 확장자 비교 조건문
     						btnEncrypt.setEnabled(false);
     						btnAESDecrypt.setEnabled(true);
     						buffer = ".txt";
-    						tbOutputText.setText(pathAES.substring(0, pathAES.lastIndexOf(".")).concat(buffer));
+    						tbOutputText.setText(pathAES);
     						lbOutput.setText("Output (.txt)");
     					}
     					else {
     						btnEncrypt.setEnabled(true);
     						btnAESDecrypt.setEnabled(false);
     						buffer = ".aes";
-    						tbOutputText.setText(pathAES.substring(0, pathAES.lastIndexOf(".")).concat(buffer));
+    						tbOutputText.setText(pathAES);
     						lbOutput.setText("Output (.aes)");
     					}
         			}
@@ -271,14 +277,13 @@ public class OpenShell {
         btnEncrypt.addSelectionListener(new SelectionAdapter() {
         	@Override
         	public void widgetSelected(SelectionEvent e) {
-        		pbAesBar.setSelection(0);
         		Aes256Codec ac = new Aes256Codec();
         		try {
-					ac.encryptFile(tbOutputText.getText());
-					pbAesBar.setSelection(100);
+					if(!ac.encryptFile(tbOutputText.getText())) {
+						tbOutputText.setText("Not support file type, Access denied");
+						tbOutputText.setForeground(SWTResourceManager.getColor(SWT.COLOR_RED));
+					}
 				} catch (Exception e2) {
-					tbOutputText.setText("Not support file type, Access denied");
-					tbOutputText.setForeground(SWTResourceManager.getColor(SWT.COLOR_RED));
 				}
         	}
         });
@@ -286,11 +291,9 @@ public class OpenShell {
         btnAESDecrypt.addSelectionListener(new SelectionAdapter() {
         	@Override
         	public void widgetSelected(SelectionEvent e) {
-        		pbAesBar.setSelection(0);
         		Aes256Codec ac = new Aes256Codec();
         		try {
 					ac.decryptFile(tbOutputText.getText());
-					pbAesBar.setSelection(100);
 					System.out.println(e);
 				} catch (Exception e2) {
 					tbOutputText.setText("Not support file type, Access denied");
