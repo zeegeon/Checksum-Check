@@ -13,6 +13,6 @@ public class MainUI {
     	//Test testShell = new Test();
     	//testShell.openNewShell(display);
      	
-        //display.dispose();
+        display.dispose();
         }
 }

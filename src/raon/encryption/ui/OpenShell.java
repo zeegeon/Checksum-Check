@@ -257,14 +257,12 @@ public class OpenShell {
     					if(buffer.equals(".aes")) {		// 확장자 비교 조건문
     						btnEncrypt.setEnabled(false);
     						btnAESDecrypt.setEnabled(true);
-    						buffer = ".txt";
     						tbOutputText.setText(pathAES);
     						lbOutput.setText("Output (.txt)");
     					}
     					else {
     						btnEncrypt.setEnabled(true);
     						btnAESDecrypt.setEnabled(false);
-    						buffer = ".aes";
     						tbOutputText.setText(pathAES);
     						lbOutput.setText("Output (.aes)");
     					}
@@ -283,8 +281,7 @@ public class OpenShell {
 						tbOutputText.setText("Not support file type, Access denied");
 						tbOutputText.setForeground(SWTResourceManager.getColor(SWT.COLOR_RED));
 					}
-				} catch (Exception e2) {
-				}
+				} catch (Exception e2) {}
         	}
         });
         
@@ -293,12 +290,11 @@ public class OpenShell {
         	public void widgetSelected(SelectionEvent e) {
         		Aes256Codec ac = new Aes256Codec();
         		try {
-					ac.decryptFile(tbOutputText.getText());
-					System.out.println(e);
-				} catch (Exception e2) {
-					tbOutputText.setText("Not support file type, Access denied");
-					tbOutputText.setForeground(SWTResourceManager.getColor(SWT.COLOR_RED));
-				}
+        			if(!ac.decryptFile(tbOutputText.getText())) {
+						tbOutputText.setText("Not support file type, Access denied");
+						tbOutputText.setForeground(SWTResourceManager.getColor(SWT.COLOR_RED));
+        			}
+				} catch (Exception e2) {}
         	}
         });
         
@@ -309,6 +305,6 @@ public class OpenShell {
                 display.sleep();
             }
         }
-        display.dispose();
+        //display.dispose();
 	}
 }

@@ -29,23 +29,26 @@ public class Aes256Codec {
         IvParameterSpec ivParamSpec = new IvParameterSpec(iv);
         cipher.init(Cipher.ENCRYPT_MODE, keySpec, ivParamSpec);
         
-        // check Binary file - if not, program finish
-        int checkBufferSize = 1024;
+        // check Binary file - if not, program finishes
+        int checkSize = 1024;
         BinaryCheck Bcheck =  new BinaryCheck();
-		if(Bcheck.checkBinary(path, checkBufferSize)) {
+		if(Bcheck.checkBinary(path, checkSize)) {
 			return false;
 		}
-        ///////////////////////////////////////////////////////////////////////////
+		
+		// Read file
 		FileInputStream fileStream = new FileInputStream(path);
-        byte[] readBuffer = new byte[fileStream.available()];
+        byte[] readBuffer = new byte[1048];
+        int byteRead;
+        byte[] textBytes = null;
         
-        while (fileStream.read(readBuffer) != -1) {
+        while ((byteRead = fileStream.read(readBuffer)) != -1) {
+        	textBytes = cipher.update(readBuffer, 0, byteRead);
         }
         fileStream.close();
-        /////////////////////////////////////////////////////////////////////////
 		
         // Byte Encryption
-        byte[] encryptedBytes = cipher.doFinal(readBuffer);
+        byte[] encryptedBytes = cipher.doFinal(textBytes);
         String writeString = Base64.getEncoder().encodeToString(encryptedBytes);
         
         // File Write
@@ -65,16 +68,42 @@ public class Aes256Codec {
 	}
 	
 	// File Decrypt
-	public void decryptFile(String path) throws Exception {
+	public boolean decryptFile(String path) throws Exception {
 		Cipher cipher = Cipher.getInstance(alg);
         SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
         IvParameterSpec ivParamSpec = new IvParameterSpec(iv);
         cipher.init(Cipher.DECRYPT_MODE, keySpec, ivParamSpec);
         
+        // check Binary file - if not, program finishes
+        int checkSize = 1024;
+        BinaryCheck Bcheck =  new BinaryCheck();
+		if(Bcheck.checkBinary(path, checkSize)) {
+			System.out.println("Bcheck.checkBinary");
+			return false;
+		}
+
         FileInputStream fileStream = new FileInputStream(path);
         byte[] readBuffer = new byte[fileStream.available()];
         while (fileStream.read(readBuffer) != -1){}
         fileStream.close();
+		
+        
+//		FileInputStream fileStream = new FileInputStream(path);
+//		byte[] readBuffer = new byte[1024];
+//		int byteRead;
+//		byte[] textBytes = null;
+//      
+//		int pos = 0;
+//		while ((byteRead = fileStream.read(readBuffer)) != -1) {
+//			System.out.println("byteRead : "+ byteRead);
+//			System.out.println("readBuffer : " + IntegrityCheckUtil.bytesToHex(readBuffer));
+//			
+//        	System.out.println("textBytes" + textBytes);
+//        	pos += byteRead;
+//		}
+//		System.out.println("textBytes : "+ IntegrityCheckUtil.bytesToHex(textBytes));
+//		fileStream.close();
+        
         
         // Byte Decryption
         byte[] decodedBytes = Base64.getDecoder().decode(readBuffer);
@@ -92,7 +121,7 @@ public class Aes256Codec {
 			PrintWriter writer = new PrintWriter(fw);
 			writer.write(writeString);
 			writer.close();
-			
 		} catch (IOException e) {}
+		return true;
 	}
 }

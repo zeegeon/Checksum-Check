@@ -1,0 +1,316 @@
+[1mdiff --git a/src/raon/encryption/Aes256Codec.java b/src/raon/encryption/Aes256Codec.java[m
+[1mindex 5d62618..934cd67 100644[m
+[1m--- a/src/raon/encryption/Aes256Codec.java[m
+[1m+++ b/src/raon/encryption/Aes256Codec.java[m
+[36m@@ -29,23 +29,26 @@[m [mpublic class Aes256Codec {[m
+         IvParameterSpec ivParamSpec = new IvParameterSpec(iv);[m
+         cipher.init(Cipher.ENCRYPT_MODE, keySpec, ivParamSpec);[m
+         [m
+[31m-        // check Binary file - if not, program finish[m
+[31m-        int checkBufferSize = 1024;[m
+[32m+[m[32m        // check Binary file - if not, program finishes[m
+[32m+[m[32m        int checkSize = 1024;[m
+         BinaryCheck Bcheck =  new BinaryCheck();[m
+[31m-		if(Bcheck.checkBinary(path, checkBufferSize)) {[m
+[32m+[m		[32mif(Bcheck.checkBinary(path, checkSize)) {[m
+ 			return false;[m
+ 		}[m
+[31m-        ///////////////////////////////////////////////////////////////////////////[m
+[32m+[m[41m		[m
+[32m+[m		[32m// Read file[m
+ 		FileInputStream fileStream = new FileInputStream(path);[m
+[31m-        byte[] readBuffer = new byte[fileStream.available()];[m
+[32m+[m[32m        byte[] readBuffer = new byte[1048];[m
+[32m+[m[32m        int byteRead;[m
+[32m+[m[32m        byte[] textBytes = null;[m
+         [m
+[31m-        while (fileStream.read(readBuffer) != -1) {[m
+[32m+[m[32m        while ((byteRead = fileStream.read(readBuffer)) != -1) {[m
+[32m+[m[41m        [m	[32mtextBytes = cipher.update(readBuffer, 0, byteRead);[m
+         }[m
+         fileStream.close();[m
+[31m-        /////////////////////////////////////////////////////////////////////////[m
+ 		[m
+         // Byte Encryption[m
+[31m-        byte[] encryptedBytes = cipher.doFinal(readBuffer);[m
+[32m+[m[32m        byte[] encryptedBytes = cipher.doFinal(textBytes);[m
+         String writeString = Base64.getEncoder().encodeToString(encryptedBytes);[m
+         [m
+         // File Write[m
+[36m@@ -65,16 +68,42 @@[m [mpublic class Aes256Codec {[m
+ 	}[m
+ 	[m
+ 	// File Decrypt[m
+[31m-	public void decryptFile(String path) throws Exception {[m
+[32m+[m	[32mpublic boolean decryptFile(String path) throws Exception {[m
+ 		Cipher cipher = Cipher.getInstance(alg);[m
+         SecretKeySpec keySpec = new SecretKeySpec(key, "AES");[m
+         IvParameterSpec ivParamSpec = new IvParameterSpec(iv);[m
+         cipher.init(Cipher.DECRYPT_MODE, keySpec, ivParamSpec);[m
+         [m
+[32m+[m[32m        // check Binary file - if not, program finishes[m
+[32m+[m[32m        int checkSize = 1024;[m
+[32m+[m[32m        BinaryCheck Bcheck =  new BinaryCheck();[m
+[32m+[m		[32mif(Bcheck.checkBinary(path, checkSize)) {[m
+[32m+[m			[32mSystem.out.println("Bcheck.checkBinary");[m
+[32m+[m			[32mreturn false;[m
+[32m+[m		[32m}[m
+[32m+[m
+         FileInputStream fileStream = new FileInputStream(path);[m
+         byte[] readBuffer = new byte[fileStream.available()];[m
+         while (fileStream.read(readBuffer) != -1){}[m
+         fileStream.close();[m
+[32m+[m[41m		[m
+[32m+[m[41m        [m
+[32m+[m[32m//		FileInputStream fileStream = new FileInputStream(path);[m
+[32m+[m[32m//		byte[] readBuffer = new byte[1024];[m
+[32m+[m[32m//		int byteRead;[m
+[32m+[m[32m//		byte[] textBytes = null;[m
+[32m+[m[32m//[m[41m      [m
+[32m+[m[32m//		int pos = 0;[m
+[32m+[m[32m//		while ((byteRead = fileStream.read(readBuffer)) != -1) {[m
+[32m+[m[32m//			System.out.println("byteRead : "+ byteRead);[m
+[32m+[m[32m//			System.out.println("readBuffer : " + IntegrityCheckUtil.bytesToHex(readBuffer));[m
+[32m+[m[32m//[m[41m			[m
+[32m+[m[32m//        	System.out.println("textBytes" + textBytes);[m
+[32m+[m[32m//        	pos += byteRead;[m
+[32m+[m[32m//		}[m
+[32m+[m[32m//		System.out.println("textBytes : "+ IntegrityCheckUtil.bytesToHex(textBytes));[m
+[32m+[m[32m//		fileStream.close();[m
+[32m+[m[41m        [m
+         [m
+         // Byte Decryption[m
+         byte[] decodedBytes = Base64.getDecoder().decode(readBuffer);[m
+[36m@@ -92,7 +121,7 @@[m [mpublic class Aes256Codec {[m
+ 			PrintWriter writer = new PrintWriter(fw);[m
+ 			writer.write(writeString);[m
+ 			writer.close();[m
+[31m-			[m
+ 		} catch (IOException e) {}[m
+[32m+[m		[32mreturn true;[m
+ 	}[m
+ }[m
+\ No newline at end of file[m
+[1mdiff --git a/src/raon/encryption/FileReadThread.java b/src/raon/encryption/FileReadThread.java[m
+[1mdeleted file mode 100644[m
+[1mindex d649c1f..0000000[m
+[1m--- a/src/raon/encryption/FileReadThread.java[m
+[1m+++ /dev/null[m
+[36m@@ -1,56 +0,0 @@[m
+[31m-package raon.encryption;[m
+[31m-[m
+[31m-import java.io.File;[m
+[31m-import java.io.FileInputStream;[m
+[31m-import java.io.IOException;[m
+[31m-import java.security.MessageDigest;[m
+[31m-import java.security.NoSuchAlgorithmException;[m
+[31m-[m
+[31m-public class FileReadThread extends Thread {[m
+[31m-	private File file;[m
+[31m-	private String Hash; [m
+[31m-	private int count=0;[m
+[31m-	[m
+[31m-	public FileReadThread(File file) {[m
+[31m-		this.file = file;[m
+[31m-		System.out.println("File read Thread run");[m
+[31m-	}[m
+[31m-	[m
+[31m-	@Override[m
+[31m-	public void run() {[m
+[31m-		try {[m
+[31m-			MessageDigest md = MessageDigest.getInstance("SHA-256");[m
+[31m-			FileInputStream fis = new FileInputStream(file);[m
+[31m-			[m
+[31m-			int speed = 1024;[m
+[31m-			[m
+[31m-			byte[] byteArray = new byte[speed];[m
+[31m-			int byteCount = 0;[m
+[31m-			[m
+[31m-			int c = (int)file.length() / speed+1;[m
+[31m-			[m
+[31m-			int ccount = 0;[m
+[31m-			[m
+[31m-			while((byteCount = fis.read(byteArray)) != -1) {[m
+[31m-				md.update(byteArray, 0, byteCount);[m
+[31m-				ccount ++;[m
+[31m-				this.count = 100 * ccount / c;[m
+[31m-				System.out.println("count : "+ count);[m
+[31m-			}[m
+[31m-			//System.out.println(file.length() + " bytes");[m
+[31m-			Hash = IntegrityCheckUtil.bytesToHex(md.digest());[m
+[31m-			[m
+[31m-			fis.close();[m
+[31m-		} catch (NoSuchAlgorithmException | IOException e) {[m
+[31m-		}  [m
+[31m-	}[m
+[31m-	[m
+[31m-	public String getResult() {[m
+[31m-		System.out.println("File read Thread dead");[m
+[31m-		return this.Hash;[m
+[31m-	}[m
+[31m-	public int getCount() {[m
+[31m-		return this.count;[m
+[31m-	}[m
+[31m-}[m
+[31m- // ∆Û±‚ =================================================================================[m
+\ No newline at end of file[m
+[1mdiff --git a/src/raon/encryption/ui/MainUI.java b/src/raon/encryption/ui/MainUI.java[m
+[1mindex abbc1fc..11b2773 100644[m
+[1m--- a/src/raon/encryption/ui/MainUI.java[m
+[1m+++ b/src/raon/encryption/ui/MainUI.java[m
+[36m@@ -13,6 +13,6 @@[m [mpublic class MainUI {[m
+     	//Test testShell = new Test();[m
+     	//testShell.openNewShell(display);[m
+      	[m
+[31m-        //display.dispose();[m
+[32m+[m[32m        display.dispose();[m
+         }[m
+ }[m
+[1mdiff --git a/src/raon/encryption/ui/OpenShell.java b/src/raon/encryption/ui/OpenShell.java[m
+[1mindex dfbbfcc..d7fa061 100644[m
+[1m--- a/src/raon/encryption/ui/OpenShell.java[m
+[1m+++ b/src/raon/encryption/ui/OpenShell.java[m
+[36m@@ -257,14 +257,12 @@[m [mpublic class OpenShell {[m
+     					if(buffer.equals(".aes")) {		// »Æ¿Â¿⁄ ∫Ò±≥ ¡∂∞«πÆ[m
+     						btnEncrypt.setEnabled(false);[m
+     						btnAESDecrypt.setEnabled(true);[m
+[31m-    						buffer = ".txt";[m
+     						tbOutputText.setText(pathAES);[m
+     						lbOutput.setText("Output (.txt)");[m
+     					}[m
+     					else {[m
+     						btnEncrypt.setEnabled(true);[m
+     						btnAESDecrypt.setEnabled(false);[m
+[31m-    						buffer = ".aes";[m
+     						tbOutputText.setText(pathAES);[m
+     						lbOutput.setText("Output (.aes)");[m
+     					}[m
+[36m@@ -283,8 +281,7 @@[m [mpublic class OpenShell {[m
+ 						tbOutputText.setText("Not support file type, Access denied");[m
+ 						tbOutputText.setForeground(SWTResourceManager.getColor(SWT.COLOR_RED));[m
+ 					}[m
+[31m-				} catch (Exception e2) {[m
+[31m-				}[m
+[32m+[m				[32m} catch (Exception e2) {}[m
+         	}[m
+         });[m
+         [m
+[36m@@ -293,12 +290,11 @@[m [mpublic class OpenShell {[m
+         	public void widgetSelected(SelectionEvent e) {[m
+         		Aes256Codec ac = new Aes256Codec();[m
+         		try {[m
+[31m-					ac.decryptFile(tbOutputText.getText());[m
+[31m-					System.out.println(e);[m
+[31m-				} catch (Exception e2) {[m
+[31m-					tbOutputText.setText("Not support file type, Access denied");[m
+[31m-					tbOutputText.setForeground(SWTResourceManager.getColor(SWT.COLOR_RED));[m
+[31m-				}[m
+[32m+[m[41m        [m			[32mif(!ac.decryptFile(tbOutputText.getText())) {[m
+[32m+[m						[32mtbOutputText.setText("Not support file type, Access denied");[m
+[32m+[m						[32mtbOutputText.setForeground(SWTResourceManager.getColor(SWT.COLOR_RED));[m
+[32m+[m[41m        [m			[32m}[m
+[32m+[m				[32m} catch (Exception e2) {}[m
+         	}[m
+         });[m
+         [m
+[36m@@ -309,6 +305,6 @@[m [mpublic class OpenShell {[m
+                 display.sleep();[m
+             }[m
+         }[m
+[31m-        display.dispose();[m
+[32m+[m[32m        //display.dispose();[m
+ 	}[m
+ }[m
+[1mdiff --git a/src/raon/encryption/ui/ProgressThread.java b/src/raon/encryption/ui/ProgressThread.java[m
+[1mdeleted file mode 100644[m
+[1mindex d993c06..0000000[m
+[1m--- a/src/raon/encryption/ui/ProgressThread.java[m
+[1m+++ /dev/null[m
+[36m@@ -1,22 +0,0 @@[m
+[31m-package raon.encryption.ui;[m
+[31m-[m
+[31m-import raon.encryption.Aes256Codec;[m
+[31m-import raon.encryption.HashGenerator;[m
+[31m-import raon.encryption.IntegrityCheckUtil;[m
+[31m-[m
+[31m-public class ProgressThread extends Thread {[m
+[31m-	private int gauge;[m
+[31m-	private String hash;[m
+[31m-	[m
+[31m-	public ProgressThread(int val) {[m
+[31m-		System.out.println("");[m
+[31m-		this.gauge = val;[m
+[31m-	}[m
+[31m-	[m
+[31m-	@Override[m
+[31m-	public void run() {[m
+[31m-		int val2 = gauge / 100;[m
+[31m-		System.out.println(val2);[m
+[31m-		//pbHashBar.setSelection(100);[m
+[31m-	}[m
+[31m-}[m
+[1mdiff --git a/src/raon/encryption/ui/Test2.java b/src/raon/encryption/ui/Test2.java[m
+[1mdeleted file mode 100644[m
+[1mindex 5d9ed3c..0000000[m
+[1m--- a/src/raon/encryption/ui/Test2.java[m
+[1m+++ /dev/null[m
+[36m@@ -1,58 +0,0 @@[m
+[31m-package raon.encryption.ui;[m
+[31m-[m
+[31m-import org.eclipse.swt.SWT;[m
+[31m-import org.eclipse.swt.widgets.Display;[m
+[31m-import org.eclipse.swt.widgets.ProgressBar;[m
+[31m-import org.eclipse.swt.widgets.Shell;[m
+[31m-[m
+[31m-public class Test2 {[m
+[31m-[m
+[31m-  public static void main(String[] args) {[m
+[31m-    final Display display = new Display();[m
+[31m-    Shell shell = new Shell(display);[m
+[31m-    final ProgressBar bar = new ProgressBar(shell, SWT.SMOOTH);[m
+[31m-    bar.setBounds(10, 10, 800, 32);[m
+[31m-    shell.open();[m
+[31m-    final int maximum = bar.getMaximum();[m
+[31m-    [m
+[31m-    [m
+[31m-    [m
+[31m-    new Thread() {[m
+[31m-    	[m
+[31m-      public void run() {[m
+[31m-        for (final int[] i = new int[1]; i[0] <= maximum; i[0]++) {[m
+[31m-          try {[m
+[31m-            Thread.sleep(20);[m
+[31m-          } catch (Throwable th) {[m
+[31m-          }[m
+[31m-          [m
+[31m-          [m
+[31m-          System.out.println(i[0]);[m
+[31m-          display.asyncExec(new Runnable() {[m
+[31m-            public void run() {[m
+[31m-              if (bar.isDisposed())[m
+[31m-                return;[m
+[31m-              bar.setSelection(i[0]);[m
+[31m-            }[m
+[31m-          });[m
+[31m-          [m
+[31m-          [m
+[31m-          [m
+[31m-          [m
+[31m-        }[m
+[31m-      }[m
+[31m-    }.start();[m
+[31m-    [m
+[31m-    [m
+[31m-    [m
+[31m-    [m
+[31m-    [m
+[31m-    [m
+[31m-    [m
+[31m-    while (!shell.isDisposed()) {[m
+[31m-      if (!display.readAndDispatch())[m
+[31m-        display.sleep();[m
+[31m-    }[m
+[31m-    display.dispose();[m
+[31m-  }[m
+[31m-}[m
+\ No newline at end of file[m
