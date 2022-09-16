@@ -33,12 +33,8 @@ public class FileEncryptor
         cipher.init(Cipher.ENCRYPT_MODE, keySpec, ivParamSpec);
         
         // Check File type. If not text file, Program finishes
-        int checkSize = 1024;
-        if(checkFileType(path, checkSize)) 
-        {
-			return false;
-		}
-		
+        checkFileType(path, 32);
+        
 		// Read file
 		FileInputStream fileStream = new FileInputStream(path);
         byte[] readBuffer = new byte[1024];
@@ -57,24 +53,24 @@ public class FileEncryptor
         
         // File Write
         String changeFileName  = path.substring(0, path.lastIndexOf(".")).concat(".aes");
-		try 
+	
+		File file = new File(changeFileName);
+		
+		if(!file.exists()) 
 		{
-			File file = new File(changeFileName);
-			
-			if(!file.exists()) 
-			{
-				file.createNewFile();
-			}
-			FileWriter fw = new FileWriter(file);
-			PrintWriter writer = new PrintWriter(fw);
-			writer.write(writeString);
-			writer.close();
-		} catch (IOException e) {}
+			file.createNewFile();
+		}
+		FileWriter fw = new FileWriter(file);
+		PrintWriter writer = new PrintWriter(fw);
+		writer.write(writeString);
+		writer.close();
+
 		return true;
 	}
 	
 	// File Decrypt
-	public boolean decryptFile(String path) throws Exception 
+	private static final int ChunkSize = 1024;
+	public void decryptFileAES(String path) throws Exception 
 	{
 		Cipher cipher = Cipher.getInstance(alg);
         SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
@@ -82,11 +78,7 @@ public class FileEncryptor
         cipher.init(Cipher.DECRYPT_MODE, keySpec, ivParamSpec);
         
         // Check File type. If not text file, Program finishes
-        int checkSize = 1024;
-        if(checkFileType(path, checkSize)) 
-        {
-			return false;
-		}
+        checkFileType(path, ChunkSize);
         
 		FileInputStream fileStream = new FileInputStream(path);
 
@@ -102,48 +94,38 @@ public class FileEncryptor
         
         // File Write
         String changeFileName  = path.substring(0, path.lastIndexOf(".")).concat(".txt");
-		try 
+	
+		File file = new File(changeFileName);
+		
+		if(!file.exists()) 
 		{
-			File file = new File(changeFileName);
-			
-			if(!file.exists()) 
-			{
-				file.createNewFile();
-			}
-			
-			FileWriter fw = new FileWriter(file);
-			PrintWriter writer = new PrintWriter(fw);
-			writer.write(writeString);
-			writer.close();
-		} catch (IOException e) {}
-		return true;
+			file.createNewFile();
+		}
+		
+		FileWriter fw = new FileWriter(file);
+		PrintWriter writer = new PrintWriter(fw);
+		writer.write(writeString);
+		writer.close();
+
 	}
 	
-	private boolean checkFileType(String path, int len) 
+	private void checkFileType(String path, int len) throws IOException 
 	{
-		try 
+		FileInputStream fileStream = new FileInputStream(path);
+		
+		byte[] checkBuffer = new byte[len];
+		int readBytes = fileStream.read(checkBuffer); 
+	    fileStream.close();
+	    
+	    int count = 0; // for checking EOF
+		for (byte thisByte : checkBuffer) 
 		{
-			FileInputStream fileStream = new FileInputStream(path);
-			
-			byte[] checkBuffer = new byte[len];
-			int readBytes = fileStream.read(checkBuffer); // 실제 읽은 바이트 수 리턴
-		    fileStream.close();
-		    
-		    int count = 0; // for checking EOF
-			for (byte thisByte : checkBuffer) 
-			{
-				if (thisByte == 0 && count < readBytes-1) 
-				{ 
-					return true;
-				}
-				count++;
+			if (thisByte == 0 && count < readBytes-1) 
+			{ 
+				break;
 			}
-		} catch (Exception e) 
-		{
-			System.out.println("BinaryCheck-File not found");
-			return true;
+			count++;
 		}
-		return false;
 	}
 	
 }

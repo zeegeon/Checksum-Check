@@ -1,20 +1,40 @@
-package raon.encryption;
+package raon.encryption.test;
 
 import java.io.FileInputStream;
+
+import raon.encryption.FileEncryptor;
+import raon.encryption.FileHashChecker;
+import raon.encryption.FileHashChecker.HashCallback;
 
 public class ConsoleTest 
 {
 	public static void main(String[] args) throws Exception 
 	{
-		String path = "resource/test1.txt";
-		String path2 = "resource/test1.aes";
-		
 		// File Hash checker
+		String path = "resource/test1.txt";
 		FileHashChecker hash = new  FileHashChecker();
-		String hashValue = "f6a5cd16ea3dfa2587ab5dd3503d283a49ba039270c023d54e65d2a1ae9f4ae4";
-		assert hash.generateFileHash(path).equals(hashValue);
+		hash.SetCallback(new HashCallback() 
+		{
+			@Override
+			public void process(int prog, String msg)
+			{
+				System.out.format("%d%%\n", prog);
+			}
+		});
+		
+		Thread hashTh = new Thread() 
+		{
+			@Override
+			public void run() 
+			{
+				hash.generateFileHash(path);
+			}
+		};
+		hashTh.start();
+		hashTh.join();
 		
 		// FileEncryptor checker
+		String path2 = "resource/test1.aes";
 		FileEncryptor aes = new FileEncryptor();
 		
 		FileInputStream fileStream = new FileInputStream(path);
@@ -22,8 +42,8 @@ public class ConsoleTest
 		while (fileStream.read(readBuffer) != -1) {}
 		fileStream.close();
 		
-		assert aes.encryptFileAES(path);
-		assert aes.decryptFile(path2);
+		aes.encryptFileAES(path);
+		aes.decryptFileAES(path2);
 		
 		FileInputStream fileStream2 = new FileInputStream(path);
 		byte[] readBuffer2 = new byte[fileStream2.available()];
@@ -34,5 +54,4 @@ public class ConsoleTest
 		
 		System.out.println("All correct");
 	}
-
 }

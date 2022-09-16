@@ -8,10 +8,10 @@ public class Main
     {
 		Display display = new Display();
 		
-		OpenShell shell1 = new OpenShell(display);
+		ShellMaker shell1 = new ShellMaker(display);
     	shell1.open();
-    	 
-		while (!shell1.isDisposed()) 
+    	
+		while (!shell1.isDisposed())
 		{
 		    if (!display.readAndDispatch()) 
 		    {
