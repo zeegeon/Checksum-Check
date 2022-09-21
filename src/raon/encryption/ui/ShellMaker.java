@@ -1,11 +1,9 @@
 package raon.encryption.ui;
 
 import java.io.FileNotFoundException;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.events.*;
-import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 import org.eclipse.swt.widgets.MessageBox;
@@ -20,9 +18,9 @@ public class ShellMaker extends Shell
 	public ShellMaker(Display display) 
 	{
 		super(display);
+		setImage(SWTResourceManager.getImage(ShellMaker.class, "/raon/encryption/ui/icon.ico"));
 
 		this.setText("File Integrity Check");
-		this.setImage(new Image(display, "resource/logo.png"));
 		this.setLocation(400,250);
 		this.setSize(500, 240);
 		this.setLayout(new GridLayout(1, true));
@@ -53,7 +51,7 @@ public class ShellMaker extends Shell
 		tbHashFileGen.setBounds(this.getSize().x*1/7, this.getSize().y*2/5, this.getSize().x*3/4 + 15, 20);
 		
 		Label lbHashCheck = new Label(compositeHash, SWT.RIGHT);
-		lbHashCheck.setText("Hash Check");
+		lbHashCheck.setText("Check");
 		lbHashCheck.setBounds(0, this.getSize().y*1/2, 60, 20);
 		
 		Text tbHashCheck = new Text(compositeHash, SWT.BORDER);
@@ -99,7 +97,7 @@ public class ShellMaker extends Shell
 		Label lbHashDndText = new Label(compositeHash, SWT.CENTER);
 		lbHashDndText.setFont(SWTResourceManager.getFont("Arial", 15, SWT.NORMAL));
 		lbHashDndText.setEnabled(false);
-		lbHashDndText.setBounds(0, this.getSize().y/5, this.getSize().x, 20);
+		lbHashDndText.setBounds(0, this.getSize().y/5, this.getSize().x, 30);
 		lbHashDndText.setText("Drag and Drop File");
 
 		Label lbHashDndBox = new Label(compositeHash, SWT.NONE);
@@ -135,8 +133,6 @@ public class ShellMaker extends Shell
 							@Override
 							public void process(int prog, String msg)
 							{
-								System.out.format("%d%%\n", prog);
-								
 								Display.getDefault().syncExec(new Runnable()
 								{
 									@Override
@@ -144,6 +140,7 @@ public class ShellMaker extends Shell
 									{
 										lbHashProgress.setText(prog + " %");
 										pbHashBar.setSelection(prog);
+										tbHashFileGen.setText(msg);
 									}
 								});	
 							}
@@ -158,6 +155,7 @@ public class ShellMaker extends Shell
 							}
 						}.start();
 					}
+					
 				}
 			}
 			
@@ -176,7 +174,7 @@ public class ShellMaker extends Shell
 		Label lbAESDndText = new Label(compositeAES, SWT.CENTER);
 		lbAESDndText.setEnabled(false);
 		lbAESDndText.setFont(SWTResourceManager.getFont("Arial", 15, SWT.NORMAL));
-		lbAESDndText.setBounds(0, this.getSize().y/5, this.getSize().x, 20);
+		lbAESDndText.setBounds(0, this.getSize().y/5, this.getSize().x, 30);
 		lbAESDndText.setText("Drag and Drop File");
 
 		Button btnEncrypt = new Button(compositeAES, SWT.NONE);
@@ -287,9 +285,10 @@ public class ShellMaker extends Shell
 						}
 						catch (Exception e) 
 						{
-							//MessageBox msg = new MessageBox(this, SWT.ICON_WARNING | SWT.ABORT | SWT.RETRY | SWT.IGNORE);
-							
-							System.out.println("btnEncrypt.addSelectionListener - " + e.getMessage());
+							MessageBox msg = new MessageBox(getShell(), SWT.ICON_WARNING);
+							msg.setText("Warning");
+							msg.setMessage("Error");
+							msg.open();
 						}
 					}
 				}.start();
@@ -312,19 +311,21 @@ public class ShellMaker extends Shell
 						FileEncryptor ac = new FileEncryptor();
 						try 
 						{
-							ac.decryptFileAES(pathAESFile);
+							if(!ac.decryptFileAES(pathAESFile))
+							{
+								Display.getDefault().asyncExec(new Runnable()
+								{
+									@Override
+									public void run() 
+									{
+										tbOutputText.setText("Not support file type, Access denied");
+										tbOutputText.setForeground(SWTResourceManager.getColor(SWT.COLOR_RED));
+									}
+								});	
+							}
 						} 
 						catch (Exception e) 
 						{
-							Display.getDefault().asyncExec(new Runnable()
-							{
-								@Override
-								public void run() 
-								{
-									tbOutputText.setText("Not support file type, Access denied");
-									tbOutputText.setForeground(SWTResourceManager.getColor(SWT.COLOR_RED));
-								}
-							});	
 							System.out.println("btnDecrypt.addSelectionListener - " + e.getMessage());
 						}
 					}

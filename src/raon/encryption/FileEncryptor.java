@@ -24,6 +24,7 @@ public class FileEncryptor
 		(byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, 
     };
     
+    private static final int ChunkSize = 1024;
 	// File Encrypt
 	public boolean encryptFileAES(String path) throws Exception 
 	{
@@ -33,11 +34,14 @@ public class FileEncryptor
         cipher.init(Cipher.ENCRYPT_MODE, keySpec, ivParamSpec);
         
         // Check File type. If not text file, Program finishes
-        checkFileType(path, 32);
+        if(!checkFileType(path, ChunkSize))
+        {
+        	return false;
+        }
         
 		// Read file
 		FileInputStream fileStream = new FileInputStream(path);
-        byte[] readBuffer = new byte[1024];
+        byte[] readBuffer = new byte[ChunkSize];
         int byteRead;
         byte[] textBytes = null;
         
@@ -64,13 +68,12 @@ public class FileEncryptor
 		PrintWriter writer = new PrintWriter(fw);
 		writer.write(writeString);
 		writer.close();
-
+		
 		return true;
 	}
 	
 	// File Decrypt
-	private static final int ChunkSize = 1024;
-	public void decryptFileAES(String path) throws Exception 
+	public boolean decryptFileAES(String path) throws Exception 
 	{
 		Cipher cipher = Cipher.getInstance(alg);
         SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
@@ -78,13 +81,15 @@ public class FileEncryptor
         cipher.init(Cipher.DECRYPT_MODE, keySpec, ivParamSpec);
         
         // Check File type. If not text file, Program finishes
-        checkFileType(path, ChunkSize);
-        
+        if(!checkFileType(path, ChunkSize))
+        {
+        	return false;
+        }
 		FileInputStream fileStream = new FileInputStream(path);
 
 		byte[] readBuffer = new byte[fileStream.available()];
 		while (fileStream.read(readBuffer) != -1) {}
-		    	
+		
 		fileStream.close();
             
         // Byte Decryption
@@ -106,10 +111,11 @@ public class FileEncryptor
 		PrintWriter writer = new PrintWriter(fw);
 		writer.write(writeString);
 		writer.close();
-
+		
+		return true;
 	}
 	
-	private void checkFileType(String path, int len) throws IOException 
+	private boolean checkFileType(String path, int len) throws IOException 
 	{
 		FileInputStream fileStream = new FileInputStream(path);
 		
@@ -122,10 +128,11 @@ public class FileEncryptor
 		{
 			if (thisByte == 0 && count < readBytes-1) 
 			{ 
-				break;
+				return false;
 			}
 			count++;
 		}
+		return true;
 	}
 	
 }
