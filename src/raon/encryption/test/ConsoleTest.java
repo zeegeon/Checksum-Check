@@ -1,57 +1,57 @@
 package raon.encryption.test;
 
 import java.io.FileInputStream;
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 
 import raon.encryption.FileEncryptor;
 import raon.encryption.FileHashChecker;
-import raon.encryption.FileHashChecker.HashCallback;
 
 public class ConsoleTest 
 {
-	public static void main(String[] args) throws Exception 
+	public void doHashChecksumTest(String binaryFilePath) throws NoSuchAlgorithmException, IOException
 	{
-		// File Hash checker
-		String path = "resource/test1.txt";
-		FileHashChecker hash = new  FileHashChecker();
-		hash.SetCallback(new HashCallback() 
-		{
-			@Override
-			public void process(int prog, String msg)
-			{
-				System.out.format("%d%%\n", prog);
-			}
-		});
+		final FileHashChecker hash = new  FileHashChecker();
 		
-		Thread hashTh = new Thread() 
-		{
-			@Override
-			public void run() 
-			{
-				hash.generateFileHash(path);
-			}
-		};
-		hashTh.start();
-		hashTh.join();
-		
-		// FileEncryptor checker
-		String path2 = "resource/test1.aes";
-		FileEncryptor aes = new FileEncryptor();
-		
-		FileInputStream fileStream = new FileInputStream(path);
-		byte[] readBuffer = new byte[fileStream.available()];
-		while (fileStream.read(readBuffer) != -1) {}
+		String checkSum = hash.generateFileHashString(binaryFilePath);
+		assert checkSum.equals("f761cfe3496c611d6bff6cf23c72cf943adb7e9adca61fca838f52f2e3c82e7e");
+	}
+	
+	public void doFileEncoderTest(String textFilePath) throws Exception
+	{
+		final String tempFilePath = "res/temp.aes";
+		final String resultFilePath = "res/result.txt";
+		final FileEncryptor aes = new FileEncryptor();
+
+		aes.encryptFileAES(textFilePath, tempFilePath); 
+		aes.decryptFileAES(tempFilePath, resultFilePath);
+	
+		FileInputStream fileStream = new FileInputStream(textFilePath);
+		byte[] leftBuffer = new byte[fileStream.available()];
+		while (fileStream.read(leftBuffer) != -1);
 		fileStream.close();
 		
-		aes.encryptFileAES(path);
-		aes.decryptFileAES(path2);
+		fileStream = new FileInputStream(resultFilePath);
+		byte[] rightBuffer = new byte[fileStream.available()];
+		while (fileStream.read(rightBuffer) != -1);
+		fileStream.close();
 		
-		FileInputStream fileStream2 = new FileInputStream(path);
-		byte[] readBuffer2 = new byte[fileStream2.available()];
-		while (fileStream2.read(readBuffer2) != -1) {}
-		fileStream2.close();
+		assert java.util.Arrays.equals(leftBuffer, rightBuffer);
+	}
+	
+	public static void main(String[] args) 
+	{
+		ConsoleTest tester = new ConsoleTest();
+		try 
+		{
+			tester.doHashChecksumTest("res/sample.bin");
+			tester.doFileEncoderTest("res/sample.txt");
+		} 
+		catch (Exception e) 
+		{
+			System.out.println(e.getMessage());
+		}
 		
-		assert java.util.Arrays.equals(readBuffer, readBuffer2);
-		
-		System.out.println("All correct");
+		System.out.println("Test complete");
 	}
 }

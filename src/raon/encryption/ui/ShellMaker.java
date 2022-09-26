@@ -1,12 +1,15 @@
 package raon.encryption.ui;
 
-import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.NoSuchAlgorithmException;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
-import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.wb.swt.SWTResourceManager;
 
 import raon.encryption.FileEncryptor;
@@ -15,16 +18,24 @@ import raon.encryption.FileHashChecker.HashCallback;
 
 public class ShellMaker extends Shell 
 {	
+	private String inputAESFilePath;
+	
 	public ShellMaker(Display display) 
 	{
-		super(display);
-		setImage(SWTResourceManager.getImage(ShellMaker.class, "/raon/encryption/ui/icon.ico"));
+		super(display, SWT.CLOSE | SWT.TITLE | SWT.MIN | SWT.MAX);
+		setImage(SWTResourceManager.getImage("/res/icon.ico"));
+
+		InputStream is =  Main.class.getClassLoader().getResourceAsStream("icon.ico");
+		if (is != null)
+			setImage(new Image(display, is));
+		else 
+			setImage(new Image(display, "res/icon.ico"));
 
 		this.setText("File Integrity Check");
 		this.setLocation(400,250);
 		this.setSize(500, 240);
 		this.setLayout(new GridLayout(1, true));
-		
+
 		TabFolder tfFolder = new TabFolder(this, SWT.NONE);
 		tfFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 	
@@ -87,6 +98,14 @@ public class ShellMaker extends Shell
 			}
 		});
 
+		tbHashFileGen.addModifyListener(new ModifyListener() 
+		{
+			public void modifyText(ModifyEvent arg0) 
+			{
+				
+			}
+		});
+		
 		ProgressBar pbHashBar = new ProgressBar(compositeHash, SWT.SMOOTH);
 		pbHashBar.setBounds(this.getSize().x*1/7, this.getSize().y*3/5, this.getSize().x*3/4 + 15, 20);
 		pbHashBar.setMaximum(100);
@@ -104,7 +123,6 @@ public class ShellMaker extends Shell
 		lbHashDndBox.setToolTipText("Drag and drop the file to here");
 		lbHashDndBox.setBounds(0, 0, this.getSize().x, this.getSize().y*2/5);
 
-		// File Drag and Drop
 		DropTarget dtHashDnd = new DropTarget(lbHashDndBox, DND.DROP_DEFAULT | DND.DROP_COPY | DND.DROP_MOVE);
 		dtHashDnd.setTransfer(new Transfer[] { FileTransfer.getInstance(), TextTransfer.getInstance() });
 		dtHashDnd.addDropListener(new DropTargetAdapter() 
@@ -123,24 +141,23 @@ public class ShellMaker extends Shell
 			{
 				if (fileTransfer.isSupportedType(e.currentDataType)) 
 				{
-					String[] files = (String[]) e.data;
+					String[] inputFilePath = (String[]) e.data;
 					
-					if (files != null && files.length > 0) 
+					if (inputFilePath != null && inputFilePath.length > 0) 
 					{
 						FileHashChecker fhc = new FileHashChecker();	
 						fhc.SetCallback(new HashCallback() 
 						{
 							@Override
-							public void process(int prog, String msg)
+							public void process(int prog) 
 							{
-								Display.getDefault().syncExec(new Runnable()
+								Display.getDefault().asyncExec(new Runnable()
 								{
 									@Override
 									public void run() 
 									{
 										lbHashProgress.setText(prog + " %");
 										pbHashBar.setSelection(prog);
-										tbHashFileGen.setText(msg);
 									}
 								});	
 							}
@@ -151,7 +168,22 @@ public class ShellMaker extends Shell
 							@Override
 							public void run() 
 							{
-								fhc.generateFileHash(files[0]);
+								try 
+								{
+									String hash = fhc.generateFileHashString(inputFilePath[0]);
+									Display.getDefault().asyncExec(new Runnable()
+									{
+
+										@Override
+										public void run() {
+											tbHashFileGen.setText(hash);
+										}
+									});
+								} 
+								catch (NoSuchAlgorithmException | IOException e) 
+								{
+									System.out.println(e.getMessage());
+								}
 							}
 						}.start();
 					}
@@ -199,7 +231,6 @@ public class ShellMaker extends Shell
 		Label lbAesDndBox = new Label(compositeAES, SWT.NONE);
 		lbAesDndBox.setBounds(0, 0, this.getSize().x, this.getSize().y*2/5);
 
-		// File Drag and Drop
 		DropTarget dtAESDnd = new DropTarget(lbAesDndBox, DND.DROP_DEFAULT | DND.DROP_COPY | DND.DROP_MOVE);
 		dtAESDnd.setTransfer(new Transfer[] { FileTransfer.getInstance(), TextTransfer.getInstance() });
 
@@ -219,26 +250,27 @@ public class ShellMaker extends Shell
 			{
 				if (fileTransfer.isSupportedType(e.currentDataType)) 
 				{
-					String[] files = (String[]) e.data;
+					String[] inputFilePath = (String[]) e.data;
 					
-					if (files != null && files.length > 0) 
+					if (inputFilePath != null && inputFilePath.length > 0) 
 					{
-						String pathAES = files[0];
-						String buffer = pathAES.substring(pathAES.lastIndexOf("."), pathAES.length());
+						inputAESFilePath = inputFilePath[0];
+						String[] tokens = inputAESFilePath.split("\\.(?=[^\\.]+$)");
+						if (tokens.length < 2) return;
 						tbOutputText.setForeground(SWTResourceManager.getColor(SWT.COLOR_BLACK));
 						
-						if (buffer.equals(".aes")) 
+						if (tokens[1].equals("aes")) 
 						{
 							btnEncrypt.setEnabled(false);
 							btnAESDecrypt.setEnabled(true);
-							tbOutputText.setText(pathAES);
+							tbOutputText.setText(tokens[0] + ".txt");
 							lbOutput.setText("Output (.txt)");
 						} 
 						else 
 						{
 							btnEncrypt.setEnabled(true);
 							btnAESDecrypt.setEnabled(false);
-							tbOutputText.setText(pathAES);
+							tbOutputText.setText(tokens[0] + ".aes");
 							lbOutput.setText("Output (.aes)");
 						}
 					}
@@ -247,48 +279,47 @@ public class ShellMaker extends Shell
 			
 		});
 
-		// Button action method
 		btnEncrypt.addSelectionListener(new SelectionAdapter() 
 		{
 			@Override
 			public void widgetSelected(SelectionEvent e) 
 			{
-				String pathAESFile = tbOutputText.getText();
-				new Thread() 
+				if (inputAESFilePath == null) return;
+				
+				String outputFilePath = tbOutputText.getText();
+				new Thread()
 				{
 					@Override
 					public void run() 
 					{	
-						FileEncryptor ac = new FileEncryptor();
+						FileEncryptor fileEncryptor = new FileEncryptor();
 						try 
 						{
-							if(!ac.encryptFileAES(pathAESFile))
-							{
-								Display.getDefault().asyncExec(new Runnable()
-								{
-									@Override
-									public void run() 
-									{
-										tbOutputText.setText("Not support file type, Access denied");
-										tbOutputText.setForeground(SWTResourceManager.getColor(SWT.COLOR_RED));
-									}
-								});	
-							}
-						} 
-						catch (NullPointerException npe)
-						{
-							// pass
+							fileEncryptor.encryptFileAES(inputAESFilePath, outputFilePath);
 						}
-						catch(FileNotFoundException mbe)
+						catch (IOException ioe)
 						{
-							// file log.txt
+							Display.getDefault().syncExec(new Runnable()
+							{
+								@Override
+								public void run() 
+								{
+									tbOutputText.setText("Not support file type, Access denied");
+									tbOutputText.setForeground(SWTResourceManager.getColor(SWT.COLOR_RED));
+								}
+							});	
 						}
 						catch (Exception e) 
 						{
-							MessageBox msg = new MessageBox(getShell(), SWT.ICON_WARNING);
-							msg.setText("Warning");
-							msg.setMessage("Error");
-							msg.open();
+							Display.getDefault().syncExec(new Runnable()
+							{
+								@Override
+								public void run() 
+								{
+									tbOutputText.setText(e.getMessage());
+									tbOutputText.setForeground(SWTResourceManager.getColor(SWT.COLOR_RED));
+								}
+							});	
 						}
 					}
 				}.start();
@@ -301,19 +332,19 @@ public class ShellMaker extends Shell
 			@Override
 			public void widgetSelected(SelectionEvent e) 
 			{
-				String pathAESFile = tbOutputText.getText();
+				String outputFilePath = tbOutputText.getText();
 				
 				new Thread() 
 				{
 					@Override
 					public void run() 
 					{	
-						FileEncryptor ac = new FileEncryptor();
+						FileEncryptor fileEncryptor = new FileEncryptor();
 						try 
 						{
-							if(!ac.decryptFileAES(pathAESFile))
+							if(!fileEncryptor.decryptFileAES(inputAESFilePath, outputFilePath))
 							{
-								Display.getDefault().asyncExec(new Runnable()
+								Display.getDefault().syncExec(new Runnable()
 								{
 									@Override
 									public void run() 
@@ -326,7 +357,15 @@ public class ShellMaker extends Shell
 						} 
 						catch (Exception e) 
 						{
-							System.out.println("btnDecrypt.addSelectionListener - " + e.getMessage());
+							Display.getDefault().syncExec(new Runnable()
+							{
+								@Override
+								public void run() 
+								{
+									tbOutputText.setText(e.getMessage());
+									tbOutputText.setForeground(SWTResourceManager.getColor(SWT.COLOR_RED));
+								}
+							});	
 						}
 					}
 				}.start();
@@ -338,9 +377,6 @@ public class ShellMaker extends Shell
 	
 	@Override
 	protected void checkSubclass() 
-	{
-	    //  allow subclass
-	    System.out.println("Info : checking menu subclass");
-	}
+	{}
 	
 }

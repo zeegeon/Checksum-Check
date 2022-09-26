@@ -25,55 +25,103 @@ public class FileEncryptor
     };
     
     private static final int ChunkSize = 1024;
-	// File Encrypt
-	public boolean encryptFileAES(String path) throws Exception 
+	
+    /***
+     * Access the location of the input file and run the AES256 encryption operation.
+     * If there is no file in the output file location, create the file and write the contents in the file.
+     * 
+     * @param inputFilePath
+     * 		input file path
+     * @param outFilePath
+     * 		geneneted file path
+     * @throws Exception
+     */
+    public void encryptFileAES(String inputFilePath, String outFilePath) throws Exception 
+    {
+		File file = new File(outFilePath);
+		if(!file.exists()) 
+		{
+			file.createNewFile();
+		}
+		
+		BufferedWriter outputStream = new BufferedWriter(new FileWriter(file));
+		outputStream.write(encryptFileAES(inputFilePath));
+		outputStream.close();
+    }
+	
+    /***
+     * Access the location of the input file and read contents as byte data.
+     * Apply AES256 algorithm and convert to Base64 string type
+     * 
+     * @param inputFilePath
+     * 		relative file path 
+     * @return
+     * 		Encrypted file contents
+     * @throws Exception
+     */
+    public String encryptFileAES(String inputFilePath) throws Exception 
 	{
-		Cipher cipher = Cipher.getInstance(alg);
+    	Cipher cipher = Cipher.getInstance(alg);
         SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
         IvParameterSpec ivParamSpec = new IvParameterSpec(iv);
         cipher.init(Cipher.ENCRYPT_MODE, keySpec, ivParamSpec);
         
         // Check File type. If not text file, Program finishes
-        if(!checkFileType(path, ChunkSize))
+        if(!checkFileType(inputFilePath, ChunkSize))
         {
-        	return false;
+        	return "";
         }
         
-		// Read file
-		FileInputStream fileStream = new FileInputStream(path);
-        byte[] readBuffer = new byte[ChunkSize];
+		BufferedInputStream inputStream = new BufferedInputStream(new FileInputStream(inputFilePath));
+	    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+		byte[] readBuffer = new byte[ChunkSize];
         int byteRead;
-        byte[] textBytes = null;
         
-        while ((byteRead = fileStream.read(readBuffer)) != -1)
+        while ((byteRead = inputStream.read(readBuffer)) != -1)
         {
-        	textBytes = cipher.update(readBuffer, 0, byteRead);
+        	System.out.println(byteRead + " bytes read");
+        	outputStream.write(cipher.update(readBuffer, 0, byteRead));
         }
-        fileStream.close();
+        inputStream.close();
 		
         // Byte Encryption
-        byte[] encryptedBytes = cipher.doFinal(textBytes);
-        String writeString = Base64.getEncoder().encodeToString(encryptedBytes);
+        outputStream.write(cipher.doFinal());
         
-        // File Write
-        String changeFileName  = path.substring(0, path.lastIndexOf(".")).concat(".aes");
+        byte[] encryptedBytes = outputStream.toByteArray();
+        outputStream.close();
+        
+        return Base64.getEncoder().encodeToString(encryptedBytes);
+	}
 	
-		File file = new File(changeFileName);
-		
+	/***
+	 * 
+	 * @param inputFilePath
+	 * @param outputFilePath
+	 * @return
+	 * @throws Exception
+	 */
+    public boolean decryptFileAES(String inputFilePath, String outputFilePath) throws Exception 
+	{
+		File file = new File(outputFilePath);
 		if(!file.exists()) 
 		{
 			file.createNewFile();
 		}
-		FileWriter fw = new FileWriter(file);
-		PrintWriter writer = new PrintWriter(fw);
-		writer.write(writeString);
-		writer.close();
+		
+		BufferedWriter outputStream = new BufferedWriter(new FileWriter(file));
+		outputStream.write(decryptFileAES(inputFilePath));
+		outputStream.close();
 		
 		return true;
 	}
 	
-	// File Decrypt
-	public boolean decryptFileAES(String path) throws Exception 
+    /***
+     * 
+     * @param path
+     * @return
+     * @throws Exception
+     */
+    public String decryptFileAES(String path) throws Exception 
 	{
 		Cipher cipher = Cipher.getInstance(alg);
         SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
@@ -83,38 +131,23 @@ public class FileEncryptor
         // Check File type. If not text file, Program finishes
         if(!checkFileType(path, ChunkSize))
         {
-        	return false;
+        	System.out.println("FALSE");
+        	return "";
         }
-		FileInputStream fileStream = new FileInputStream(path);
 
-		byte[] readBuffer = new byte[fileStream.available()];
-		while (fileStream.read(readBuffer) != -1) {}
+		BufferedInputStream inputStream = new BufferedInputStream(new FileInputStream(path));
 		
-		fileStream.close();
+		byte[] readBuffer = new byte[inputStream.available()];
+		while (inputStream.read(readBuffer) != -1) {}
+		
+		inputStream.close();
             
         // Byte Decryption
         byte[] decodedBytes = Base64.getDecoder().decode(readBuffer);
         byte[] decrypted = cipher.doFinal(decodedBytes);
-        String writeString = new String(decrypted, "UTF-8");
-        
-        // File Write
-        String changeFileName  = path.substring(0, path.lastIndexOf(".")).concat(".txt");
-	
-		File file = new File(changeFileName);
-		
-		if(!file.exists()) 
-		{
-			file.createNewFile();
-		}
-		
-		FileWriter fw = new FileWriter(file);
-		PrintWriter writer = new PrintWriter(fw);
-		writer.write(writeString);
-		writer.close();
-		
-		return true;
+        return new String(decrypted, "UTF-8");
 	}
-	
+    
 	private boolean checkFileType(String path, int len) throws IOException 
 	{
 		FileInputStream fileStream = new FileInputStream(path);
