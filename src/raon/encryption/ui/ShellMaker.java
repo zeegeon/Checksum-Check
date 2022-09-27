@@ -2,8 +2,6 @@ package raon.encryption.ui;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.NoSuchAlgorithmException;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.events.*;
@@ -37,9 +35,11 @@ public class ShellMaker extends Shell
 		this.setLayout(new GridLayout(1, true));
 
 		TabFolder tfFolder = new TabFolder(this, SWT.NONE);
-		tfFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		GridData gd_tfFolder = new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1);
+		gd_tfFolder.widthHint = 501;
+		tfFolder.setLayoutData(gd_tfFolder);
 	
-		initializeHash(tfFolder);
+		//initializeHash(tfFolder);
 		
 		initializeAES(tfFolder);
 	}
@@ -71,7 +71,7 @@ public class ShellMaker extends Shell
 		tbHashFileGen.addModifyListener(new ModifyListener() 
 		{
 			public void modifyText(ModifyEvent arg0) 
-			{
+			{	
 				if (tbHashCheck.getText().equals(tbHashFileGen.getText())) 
 				{
 					tbHashCheck.setForeground(SWTResourceManager.getColor(SWT.COLOR_BLUE));
@@ -97,14 +97,6 @@ public class ShellMaker extends Shell
 				}
 			}
 		});
-
-		tbHashFileGen.addModifyListener(new ModifyListener() 
-		{
-			public void modifyText(ModifyEvent arg0) 
-			{
-				
-			}
-		});
 		
 		ProgressBar pbHashBar = new ProgressBar(compositeHash, SWT.SMOOTH);
 		pbHashBar.setBounds(this.getSize().x*1/7, this.getSize().y*3/5, this.getSize().x*3/4 + 15, 20);
@@ -121,14 +113,12 @@ public class ShellMaker extends Shell
 
 		Label lbHashDndBox = new Label(compositeHash, SWT.NONE);
 		lbHashDndBox.setToolTipText("Drag and drop the file to here");
-		lbHashDndBox.setBounds(0, 0, this.getSize().x, this.getSize().y*2/5);
+		lbHashDndBox.setBounds(0, -4, 473, 74);
 
 		DropTarget dtHashDnd = new DropTarget(lbHashDndBox, DND.DROP_DEFAULT | DND.DROP_COPY | DND.DROP_MOVE);
 		dtHashDnd.setTransfer(new Transfer[] { FileTransfer.getInstance(), TextTransfer.getInstance() });
 		dtHashDnd.addDropListener(new DropTargetAdapter() 
 		{
-			FileTransfer fileTransfer = FileTransfer.getInstance();
-
 			public void dragEnter(DropTargetEvent e) 
 			{
 				if (e.detail == DND.DROP_DEFAULT)
@@ -139,56 +129,65 @@ public class ShellMaker extends Shell
 
 			public void drop(DropTargetEvent e) 
 			{
-				if (fileTransfer.isSupportedType(e.currentDataType)) 
+				String[] inputFilePath = (String[]) e.data;
+				
+				if (inputFilePath != null && inputFilePath.length > 0) 
 				{
-					String[] inputFilePath = (String[]) e.data;
-					
-					if (inputFilePath != null && inputFilePath.length > 0) 
+					FileHashChecker fhc = new FileHashChecker();	
+					fhc.SetCallback(new HashCallback() 
 					{
-						FileHashChecker fhc = new FileHashChecker();	
-						fhc.SetCallback(new HashCallback() 
+						@Override
+						public void process(int prog) 
 						{
-							@Override
-							public void process(int prog) 
+							Display.getDefault().asyncExec(new Runnable()
+							{
+								@Override
+								public void run() 
+								{
+									lbHashProgress.setText(prog + " %");
+									pbHashBar.setSelection(prog);
+								}
+							});	
+						}
+					});
+					
+					new Thread() 
+					{
+						@Override
+						public void run() 
+						{
+							String hash = fhc.generateFileHashString(inputFilePath[0]);
+							if(hash != null)
 							{
 								Display.getDefault().asyncExec(new Runnable()
 								{
 									@Override
 									public void run() 
 									{
-										lbHashProgress.setText(prog + " %");
-										pbHashBar.setSelection(prog);
+										tbHashFileGen.setForeground(SWTResourceManager.getColor(SWT.COLOR_BLACK));
+										tbHashFileGen.setText(hash);
 									}
-								});	
+								});
 							}
-						});
-						
-						new Thread() 
-						{
-							@Override
-							public void run() 
+							else
 							{
-								try 
+								Display.getDefault().asyncExec(new Runnable()
 								{
-									String hash = fhc.generateFileHashString(inputFilePath[0]);
-									Display.getDefault().asyncExec(new Runnable()
+									@Override
+									public void run() 
 									{
-
-										@Override
-										public void run() {
-											tbHashFileGen.setText(hash);
-										}
-									});
-								} 
-								catch (NoSuchAlgorithmException | IOException e) 
-								{
-									System.out.println(e.getMessage());
-								}
+										tbHashFileGen.setForeground(SWTResourceManager.getColor(SWT.COLOR_RED));
+										tbHashFileGen.setText("Permission denied : " + inputFilePath[0]);
+										pbHashBar.setSelection(0);
+										lbHashProgress.setText(0 + " %");
+									}
+								});
 							}
-						}.start();
-					}
-					
+							
+						}
+					}.start();
 				}
+					
 			}
 			
 		});
@@ -287,6 +286,7 @@ public class ShellMaker extends Shell
 				if (inputAESFilePath == null) return;
 				
 				String outputFilePath = tbOutputText.getText();
+				
 				new Thread()
 				{
 					@Override
@@ -342,18 +342,7 @@ public class ShellMaker extends Shell
 						FileEncryptor fileEncryptor = new FileEncryptor();
 						try 
 						{
-							if(!fileEncryptor.decryptFileAES(inputAESFilePath, outputFilePath))
-							{
-								Display.getDefault().syncExec(new Runnable()
-								{
-									@Override
-									public void run() 
-									{
-										tbOutputText.setText("Not support file type, Access denied");
-										tbOutputText.setForeground(SWTResourceManager.getColor(SWT.COLOR_RED));
-									}
-								});	
-							}
+							fileEncryptor.decryptFileAES(inputAESFilePath, outputFilePath);
 						} 
 						catch (Exception e) 
 						{
@@ -378,5 +367,4 @@ public class ShellMaker extends Shell
 	@Override
 	protected void checkSubclass() 
 	{}
-	
 }

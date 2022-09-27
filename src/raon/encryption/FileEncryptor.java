@@ -10,7 +10,7 @@ public class FileEncryptor
 {
     private String alg = "AES/CBC/PKCS5Padding";
     
-    private static final byte[] key = new byte[] 
+    private static final byte[] key = new byte[]
     {
 		(byte)0xf6, (byte)0xa5, (byte)0xcd, (byte)0x16, (byte)0xea, (byte)0x3d, (byte)0xfa, (byte)0x25,
 		(byte)0x87, (byte)0xab, (byte)0x5d, (byte)0xd3, (byte)0x50, (byte)0x3d, (byte)0x28, (byte)0x3a,
@@ -18,17 +18,17 @@ public class FileEncryptor
 		(byte)0x4e, (byte)0x65, (byte)0xd2, (byte)0xa1, (byte)0xae, (byte)0x9f, (byte)0x4a, (byte)0xe4
     };
 
-    private static final byte[] iv = new byte[] 
+    private static final byte[] iv = new byte[]
     {
-		(byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, 
-		(byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, 
+		(byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+		(byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
     };
     
     private static final int ChunkSize = 1024;
 	
     /***
-     * Access the location of the input file and run the AES256 encryption operation.
-     * If there is no file in the output file location, create the file and write the contents in the file.
+     * Access the location of the input file and run the AES256 encrypt.
+     * If can't fine file in the output file location, create the file and write the contents in the file.
      * 
      * @param inputFilePath
      * 		input file path
@@ -36,7 +36,7 @@ public class FileEncryptor
      * 		geneneted file path
      * @throws Exception
      */
-    public void encryptFileAES(String inputFilePath, String outFilePath) throws Exception 
+    public void encryptFileAES(String inputFilePath, String outFilePath) throws Exception
     {
 		File file = new File(outFilePath);
 		if(!file.exists()) 
@@ -79,7 +79,6 @@ public class FileEncryptor
         
         while ((byteRead = inputStream.read(readBuffer)) != -1)
         {
-        	System.out.println(byteRead + " bytes read");
         	outputStream.write(cipher.update(readBuffer, 0, byteRead));
         }
         inputStream.close();
@@ -100,7 +99,7 @@ public class FileEncryptor
 	 * @return
 	 * @throws Exception
 	 */
-    public boolean decryptFileAES(String inputFilePath, String outputFilePath) throws Exception 
+    public void decryptFileAES(String inputFilePath, String outputFilePath) throws Exception 
 	{
 		File file = new File(outputFilePath);
 		if(!file.exists()) 
@@ -111,8 +110,6 @@ public class FileEncryptor
 		BufferedWriter outputStream = new BufferedWriter(new FileWriter(file));
 		outputStream.write(decryptFileAES(inputFilePath));
 		outputStream.close();
-		
-		return true;
 	}
 	
     /***

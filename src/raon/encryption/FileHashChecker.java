@@ -2,6 +2,7 @@ package raon.encryption;
 
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -25,7 +26,7 @@ public class FileHashChecker
 	}
 	
 	/***
-	 * Create a hash value from the file
+	 * Create a hash value from the input file path
 	 * 
 	 * @param inputFilePath
 	 * 		Enter the location of the file to generate the Hash value.
@@ -33,24 +34,57 @@ public class FileHashChecker
 	 * @throws IOException
 	 * @throws NoSuchAlgorithmException
 	 */
-	public byte[] generateFileHash(String inputFilePath) throws IOException, NoSuchAlgorithmException
+	public byte[] generateFileHash(String inputFilePath)
 	{
-		MessageDigest md = MessageDigest.getInstance("SHA-256");
-		BufferedInputStream inputStream = new BufferedInputStream(new FileInputStream(inputFilePath));
-		
-		int readBytes = 0;
-		long totalSize = Files.size(Paths.get(inputFilePath));
-		byte[] byteArray = new byte[ChunkSize];
-		long totalReadBytes = 0;
-		while((readBytes = inputStream.read(byteArray)) != -1)
+		MessageDigest md = null;
+		BufferedInputStream inputStream = null;
+		try
 		{
-			totalReadBytes += readBytes;
-			md.update(byteArray, 0, readBytes);
-			if (callback != null) callback.process((int)(totalReadBytes*100.0/totalSize));
+			md = MessageDigest.getInstance("SHA-256");
+			inputStream = new BufferedInputStream(new FileInputStream(inputFilePath));
+			
+			int readBytes = 0;
+			long totalReadBytes = 0;
+			long totalSize = Files.size(Paths.get(inputFilePath));
+
+			byte[] byteArray = new byte[ChunkSize];
+			while((readBytes = inputStream.read(byteArray)) != -1)
+			{
+				totalReadBytes += readBytes;
+				md.update(byteArray, 0, readBytes);
+				if (callback != null) callback.process((int)(totalReadBytes*100.0/totalSize));
+			}
+			return md.digest();
 		}
-		inputStream.close();
-		
-		return md.digest();
+		catch (NoSuchAlgorithmException e) 
+		{
+			System.out.println(e.getMessage());
+		} 
+		catch (FileNotFoundException e)
+		{
+			System.out.println("Null Pointer Exception occured");
+			return null;
+		} 
+		catch (IOException e) 
+		{
+			System.out.println(e.getMessage());
+		}
+		finally
+		{
+			try 
+			{
+				inputStream.close();
+			}
+			catch (NullPointerException e)
+			{
+				System.out.println("Null Pointer Exception occured");
+			}
+			catch (IOException e) 
+			{
+				System.out.println(e.getMessage());
+			}
+		}
+		return null;
 	}
 	
 	/***
@@ -60,22 +94,29 @@ public class FileHashChecker
 	 * @throws IOException
 	 * @throws NoSuchAlgorithmException
 	 */
-	public String generateFileHashString(String inputFilePath) throws IOException, NoSuchAlgorithmException
+	public String generateFileHashString(String inputFilePath)
 	{
 		return  bytesToHex(generateFileHash(inputFilePath));
 	}
 	/***
-	 * Method that converts the input byte type into a string
+	 * Convert the input byte type into a string
 	 * @param inputBytes
-	 * @return
+	 * @return 
 	 */
 	private String bytesToHex(byte[] inputBytes)
 	{
-		StringBuilder bytesToStingBuilder = new StringBuilder();
-		for (byte b: inputBytes)
+		try 
 		{
-			bytesToStingBuilder.append(String.format("%02x", b));
+			StringBuilder bytesToStingBuilder = new StringBuilder();
+			for (byte b: inputBytes)
+			{
+				bytesToStingBuilder.append(String.format("%02x", b));
+			}
+			return bytesToStingBuilder.toString();
 		}
-		return bytesToStingBuilder.toString();
+		catch (NullPointerException e)
+		{
+			return null;
+		}
 	}
 }

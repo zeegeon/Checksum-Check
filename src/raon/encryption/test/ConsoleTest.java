@@ -1,17 +1,15 @@
 package raon.encryption.test;
 
 import java.io.FileInputStream;
-import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
 
 import raon.encryption.FileEncryptor;
 import raon.encryption.FileHashChecker;
 
 public class ConsoleTest 
 {
-	public void doHashChecksumTest(String binaryFilePath) throws NoSuchAlgorithmException, IOException
+	public void doHashChecksumTest(String binaryFilePath)
 	{
-		final FileHashChecker hash = new  FileHashChecker();
+		final FileHashChecker hash = new FileHashChecker();
 		
 		String checkSum = hash.generateFileHashString(binaryFilePath);
 		assert checkSum.equals("f761cfe3496c611d6bff6cf23c72cf943adb7e9adca61fca838f52f2e3c82e7e");
