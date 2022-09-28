@@ -1,8 +1,10 @@
 package raon.encryption;
 
 import java.io.*;
+import java.security.*;
 import java.util.Base64;
-import javax.crypto.Cipher;
+
+import javax.crypto.*;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
@@ -24,11 +26,11 @@ public class FileEncryptor
 		(byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
     };
     
-    private static final int ChunkSize = 1024;
+    private static final int ChunkSize = 10240;
 	
     /***
      * Access the location of the input file and run the AES256 encrypt.
-     * If can't fine file in the output file location, create the file and write the contents in the file.
+     * If can't fine file in the output file location, create the file and write.
      * 
      * @param inputFilePath
      * 		input file path
@@ -38,15 +40,34 @@ public class FileEncryptor
      */
     public void encryptFileAES(String inputFilePath, String outFilePath) throws Exception
     {
-		File file = new File(outFilePath);
-		if(!file.exists()) 
+    	BufferedWriter outputStream = null;
+		try 
 		{
-			file.createNewFile();
+			String fileString = encryptFileAES(inputFilePath);
+			
+			outputStream = new BufferedWriter(new FileWriter(new File(outFilePath)));
+			outputStream.write(fileString);
+		}
+		catch (IOException e)
+		{
+			System.out.println("File open error");
+		}
+		catch (Exception e)
+		{
+			throw e;
+		}
+		finally
+		{
+			try 
+			{
+				outputStream.close();
+			} 
+			catch (IOException e) 
+			{
+				e.printStackTrace();
+			}
 		}
 		
-		BufferedWriter outputStream = new BufferedWriter(new FileWriter(file));
-		outputStream.write(encryptFileAES(inputFilePath));
-		outputStream.close();
     }
 	
     /***
@@ -59,37 +80,78 @@ public class FileEncryptor
      * 		Encrypted file contents
      * @throws Exception
      */
-    public String encryptFileAES(String inputFilePath) throws Exception 
+    public String encryptFileAES(String inputFilePath) throws Exception
 	{
-    	Cipher cipher = Cipher.getInstance(alg);
-        SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
-        IvParameterSpec ivParamSpec = new IvParameterSpec(iv);
-        cipher.init(Cipher.ENCRYPT_MODE, keySpec, ivParamSpec);
-        
-        // Check File type. If not text file, Program finishes
-        if(!checkFileType(inputFilePath, ChunkSize))
+    	BufferedInputStream inputStream = null;
+    	ByteArrayOutputStream outputStream = null;
+		try 
+		{
+			Cipher cipher = Cipher.getInstance(alg);
+			cipher.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(key, "AES"), new IvParameterSpec(iv));
+			
+			inputStream = new BufferedInputStream(new FileInputStream(inputFilePath));
+			outputStream = new ByteArrayOutputStream();
+			byte[] readBuffer = new byte[ChunkSize];
+	        int byteRead;
+	        
+	        // Check File type. If not text file, Program finishes
+	        if(!isTextFile(inputFilePath, ChunkSize)) throw new Exception();
+	        
+	        while ((byteRead = inputStream.read(readBuffer)) != -1)
+	        {
+	        	outputStream.write(cipher.update(readBuffer, 0, byteRead));
+	        }
+	        inputStream.close();
+	        
+	        // Byte Encryption
+	        outputStream.write(cipher.doFinal());
+	        
+	        byte[] encryptedBytes = outputStream.toByteArray();
+	        outputStream.close();
+	        
+	        //return new String(encryptedBytes, "UTF-8");
+	        return Base64.getEncoder().encodeToString(encryptedBytes);
+		} 
+		catch (NoSuchAlgorithmException | NoSuchPaddingException e) 
+		{
+			System.out.println("Cipher library run error : " + e.getMessage());
+		}
+        catch (InvalidKeyException | InvalidAlgorithmParameterException e) 
         {
-        	return "";
-        }
+			System.out.println("Key parameter Error : "+ e.getMessage());
+		}
+		catch (FileNotFoundException e) 
+		{
+			System.out.println("Wrong File Path");
+			//throw e;
+		} 
+		catch (IOException e) 
+		{
+			System.out.println("Stream error");
+		} 
+		catch (IllegalBlockSizeException | BadPaddingException e) 
+		{
+			System.out.println("Cipher final padding error");
+		}
+		catch (Exception e)
+		{
+			System.out.println("File type is binary");
+			throw new Exception();
+		}
+		finally
+		{
+			try 
+			{
+				inputStream.close();
+				outputStream.close();
+			} 
+			catch (IOException e) 
+			{
+				System.out.println("File close error");
+			}
+		}
         
-		BufferedInputStream inputStream = new BufferedInputStream(new FileInputStream(inputFilePath));
-	    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-		byte[] readBuffer = new byte[ChunkSize];
-        int byteRead;
-        
-        while ((byteRead = inputStream.read(readBuffer)) != -1)
-        {
-        	outputStream.write(cipher.update(readBuffer, 0, byteRead));
-        }
-        inputStream.close();
-		
-        // Byte Encryption
-        outputStream.write(cipher.doFinal());
-        
-        byte[] encryptedBytes = outputStream.toByteArray();
-        outputStream.close();
-        
-        return Base64.getEncoder().encodeToString(encryptedBytes);
+        return null;
 	}
 	
 	/***
@@ -99,17 +161,35 @@ public class FileEncryptor
 	 * @return
 	 * @throws Exception
 	 */
-    public void decryptFileAES(String inputFilePath, String outputFilePath) throws Exception 
+    public void decryptFileAES(String inputFilePath, String outputFilePath) throws Exception
 	{
-		File file = new File(outputFilePath);
-		if(!file.exists()) 
+    	BufferedWriter outputStream = null;
+		try 
 		{
-			file.createNewFile();
+			String fileString = decryptFileAES(inputFilePath);
+			
+			outputStream = new BufferedWriter(new FileWriter(new File(outputFilePath)));
+			outputStream.write(fileString);
+		} 
+		catch (IOException e) 
+		{
+			System.out.println("File open error : decryptFileAES");
 		}
-		
-		BufferedWriter outputStream = new BufferedWriter(new FileWriter(file));
-		outputStream.write(decryptFileAES(inputFilePath));
-		outputStream.close();
+		catch (Exception e)
+		{
+			throw new Exception();
+		}
+		finally
+		{
+			try 
+			{
+				outputStream.close();
+			} 
+			catch (IOException e) 
+			{
+				e.printStackTrace();
+			}
+		}
 	}
 	
     /***
@@ -118,51 +198,80 @@ public class FileEncryptor
      * @return
      * @throws Exception
      */
-    public String decryptFileAES(String path) throws Exception 
+    public String decryptFileAES(String path) throws Exception
 	{
-		Cipher cipher = Cipher.getInstance(alg);
-        SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
-        IvParameterSpec ivParamSpec = new IvParameterSpec(iv);
-        cipher.init(Cipher.DECRYPT_MODE, keySpec, ivParamSpec);
-        
-        // Check File type. If not text file, Program finishes
-        if(!checkFileType(path, ChunkSize))
-        {
-        	System.out.println("FALSE");
-        	return "";
-        }
-
-		BufferedInputStream inputStream = new BufferedInputStream(new FileInputStream(path));
-		
-		byte[] readBuffer = new byte[inputStream.available()];
-		while (inputStream.read(readBuffer) != -1) {}
-		
-		inputStream.close();
+    	try
+    	{
+    		Cipher cipher = Cipher.getInstance(alg);
+            cipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(key, "AES"), new IvParameterSpec(iv));
             
-        // Byte Decryption
-        byte[] decodedBytes = Base64.getDecoder().decode(readBuffer);
-        byte[] decrypted = cipher.doFinal(decodedBytes);
-        return new String(decrypted, "UTF-8");
+            // Check File type. If not text file, Program finishes
+	        if(!isTextFile(path, ChunkSize)) throw new Exception();
+	        
+    		BufferedInputStream inputStream = new BufferedInputStream(new FileInputStream(path));
+    		
+    		byte[] readBuffer = new byte[inputStream.available()];
+    		while (inputStream.read(readBuffer) != -1) {}
+    		
+    		inputStream.close();
+                
+            // Byte Decryption
+            byte[] decodedBytes = Base64.getDecoder().decode(readBuffer);
+            byte[] decrypted = cipher.doFinal(decodedBytes);
+            return new String(decrypted, "UTF-8");
+    	}
+    	catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | InvalidAlgorithmParameterException e) 
+		{
+			System.out.println("Cipher library run error : " + e.getMessage());
+		}
+    	catch (FileNotFoundException e) 
+    	{
+			e.printStackTrace();
+		}
+    	catch (IOException e) 
+		{
+			System.out.println("Stream error");
+		} 
+		catch (IllegalBlockSizeException | BadPaddingException e) 
+		{
+			System.out.println("Cipher final padding error");
+		}
+		return null;
+		
 	}
     
-	private boolean checkFileType(String path, int len) throws IOException 
+	private boolean isTextFile(String path, int len)
 	{
-		FileInputStream fileStream = new FileInputStream(path);
-		
-		byte[] checkBuffer = new byte[len];
-		int readBytes = fileStream.read(checkBuffer); 
-	    fileStream.close();
-	    
-	    int count = 0; // for checking EOF
-		for (byte thisByte : checkBuffer) 
-		{
-			if (thisByte == 0 && count < readBytes-1) 
-			{ 
-				return false;
+		FileInputStream fileStream = null;
+		try {
+			fileStream = new FileInputStream(path);
+			byte[] checkBuffer = new byte[len];
+			int readBytes = fileStream.read(checkBuffer); 
+		    
+		    int count = 0; // for checking EOF
+			for (byte thisByte : checkBuffer) 
+			{
+				if (thisByte == 0 && count < readBytes-1) return false;
+				count++;
 			}
-			count++;
+			return true;
+		} 
+		catch (IOException e) 
+		{
+			e.printStackTrace();
 		}
-		return true;
+		finally
+		{
+			try 
+			{
+				fileStream.close();
+			} 
+			catch (IOException e) 
+			{
+				e.printStackTrace();
+			}
+		}
+		return false;
 	}
 	
 }

@@ -1,6 +1,5 @@
 package raon.encryption.ui;
 
-import java.io.IOException;
 import java.io.InputStream;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.*;
@@ -39,7 +38,7 @@ public class ShellMaker extends Shell
 		gd_tfFolder.widthHint = 501;
 		tfFolder.setLayoutData(gd_tfFolder);
 	
-		//initializeHash(tfFolder);
+		initializeHash(tfFolder);
 		
 		initializeAES(tfFolder);
 	}
@@ -235,8 +234,6 @@ public class ShellMaker extends Shell
 
 		dtAESDnd.addDropListener(new DropTargetAdapter() 
 		{
-			FileTransfer fileTransfer = FileTransfer.getInstance();
-
 			public void dragEnter(DropTargetEvent e) 
 			{
 				if (e.detail == DND.DROP_DEFAULT)
@@ -247,31 +244,28 @@ public class ShellMaker extends Shell
 
 			public void drop(DropTargetEvent e) 
 			{
-				if (fileTransfer.isSupportedType(e.currentDataType)) 
+				String[] inputFilePath = (String[]) e.data;
+				
+				if (inputFilePath != null && inputFilePath.length > 0) 
 				{
-					String[] inputFilePath = (String[]) e.data;
+					inputAESFilePath = inputFilePath[0];
+					String[] tokens = inputAESFilePath.split("\\.(?=[^\\.]+$)");
+					if (tokens.length < 2) return;
+					tbOutputText.setForeground(SWTResourceManager.getColor(SWT.COLOR_BLACK));
 					
-					if (inputFilePath != null && inputFilePath.length > 0) 
+					if (tokens[1].equals("aes")) 
 					{
-						inputAESFilePath = inputFilePath[0];
-						String[] tokens = inputAESFilePath.split("\\.(?=[^\\.]+$)");
-						if (tokens.length < 2) return;
-						tbOutputText.setForeground(SWTResourceManager.getColor(SWT.COLOR_BLACK));
-						
-						if (tokens[1].equals("aes")) 
-						{
-							btnEncrypt.setEnabled(false);
-							btnAESDecrypt.setEnabled(true);
-							tbOutputText.setText(tokens[0] + ".txt");
-							lbOutput.setText("Output (.txt)");
-						} 
-						else 
-						{
-							btnEncrypt.setEnabled(true);
-							btnAESDecrypt.setEnabled(false);
-							tbOutputText.setText(tokens[0] + ".aes");
-							lbOutput.setText("Output (.aes)");
-						}
+						btnEncrypt.setEnabled(false);
+						btnAESDecrypt.setEnabled(true);
+						tbOutputText.setText(tokens[0] + ".txt");
+						lbOutput.setText("Output (.txt)");
+					}
+					else
+					{
+						btnEncrypt.setEnabled(true);
+						btnAESDecrypt.setEnabled(false);
+						tbOutputText.setText(tokens[0] + ".aes");
+						lbOutput.setText("Output (.aes)");
 					}
 				}
 			}
@@ -295,10 +289,12 @@ public class ShellMaker extends Shell
 						FileEncryptor fileEncryptor = new FileEncryptor();
 						try 
 						{
-							fileEncryptor.encryptFileAES(inputAESFilePath, outputFilePath);
+							fileEncryptor.encryptFileAES(inputAESFilePath, outputFilePath);	
 						}
-						catch (IOException ioe)
+						catch(Exception e)
 						{
+							System.out.println("Encrypt btn Exception "+ e.getMessage());
+							
 							Display.getDefault().syncExec(new Runnable()
 							{
 								@Override
@@ -307,19 +303,7 @@ public class ShellMaker extends Shell
 									tbOutputText.setText("Not support file type, Access denied");
 									tbOutputText.setForeground(SWTResourceManager.getColor(SWT.COLOR_RED));
 								}
-							});	
-						}
-						catch (Exception e) 
-						{
-							Display.getDefault().syncExec(new Runnable()
-							{
-								@Override
-								public void run() 
-								{
-									tbOutputText.setText(e.getMessage());
-									tbOutputText.setForeground(SWTResourceManager.getColor(SWT.COLOR_RED));
-								}
-							});	
+							});
 						}
 					}
 				}.start();
@@ -332,6 +316,8 @@ public class ShellMaker extends Shell
 			@Override
 			public void widgetSelected(SelectionEvent e) 
 			{
+				if (inputAESFilePath == null) return;
+				
 				String outputFilePath = tbOutputText.getText();
 				
 				new Thread() 
@@ -346,12 +332,14 @@ public class ShellMaker extends Shell
 						} 
 						catch (Exception e) 
 						{
+							System.out.println("Decrypt btn Exception"+ e.getMessage());
+							
 							Display.getDefault().syncExec(new Runnable()
 							{
 								@Override
 								public void run() 
 								{
-									tbOutputText.setText(e.getMessage());
+									tbOutputText.setText("Not support file type, Access denied");
 									tbOutputText.setForeground(SWTResourceManager.getColor(SWT.COLOR_RED));
 								}
 							});	

@@ -63,7 +63,6 @@ public class FileHashChecker
 		catch (FileNotFoundException e)
 		{
 			System.out.println("Null Pointer Exception occured");
-			return null;
 		} 
 		catch (IOException e) 
 		{
@@ -77,7 +76,7 @@ public class FileHashChecker
 			}
 			catch (NullPointerException e)
 			{
-				System.out.println("Null Pointer Exception occured");
+				System.out.println("inputStream is null");
 			}
 			catch (IOException e) 
 			{
