@@ -29,10 +29,9 @@ public class FileHashChecker
 	 * Create a hash value from the input file path
 	 * 
 	 * @param inputFilePath
-	 * 		Enter the location of the file to generate the Hash value.
-	 * @return
-	 * @throws IOException
-	 * @throws NoSuchAlgorithmException
+	 * 		Path of the file.
+	 * @return 
+	 * 		Save the contents of the file by reading it in byte type
 	 */
 	public byte[] generateFileHash(String inputFilePath)
 	{
@@ -88,10 +87,10 @@ public class FileHashChecker
 	
 	/***
 	 * A method for generating a hash value of a file as a string type.
-	 * @param path
-	 * @return
-	 * @throws IOException
-	 * @throws NoSuchAlgorithmException
+	 * @param inputFilePath
+	 * 		Path of the file.
+	 * @return 
+	 * 		Returns the generated hash value as a string type
 	 */
 	public String generateFileHashString(String inputFilePath)
 	{
@@ -100,7 +99,10 @@ public class FileHashChecker
 	/***
 	 * Convert the input byte type into a string
 	 * @param inputBytes
+	 * 		bytes input
 	 * @return 
+	 * 		Byte type convert to a string.
+	 * 		If Null Pointer Exception occurs, return null
 	 */
 	private String bytesToHex(byte[] inputBytes)
 	{

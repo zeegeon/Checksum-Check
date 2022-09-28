@@ -29,14 +29,13 @@ public class FileEncryptor
     private static final int ChunkSize = 10240;
 	
     /***
-     * Access the location of the input file and run the AES256 encrypt.
-     * If can't fine file in the output file location, create the file and write.
-     * 
+     * Read the file and encrypt the contents to new file
      * @param inputFilePath
-     * 		input file path
+     * 		Input file path
      * @param outFilePath
-     * 		geneneted file path
+     * 		Output file path
      * @throws Exception
+     * 		Binary file type
      */
     public void encryptFileAES(String inputFilePath, String outFilePath) throws Exception
     {
@@ -71,14 +70,13 @@ public class FileEncryptor
     }
 	
     /***
-     * Access the location of the input file and read contents as byte data.
-     * Apply AES256 algorithm and convert to Base64 string type
-     * 
+     * Read the file and encrypt the contents to string type
      * @param inputFilePath
-     * 		relative file path 
+     * 		Input file path
      * @return
      * 		Encrypted file contents
      * @throws Exception
+     * 		Binary file type
      */
     public String encryptFileAES(String inputFilePath) throws Exception
 	{
@@ -101,15 +99,11 @@ public class FileEncryptor
 	        {
 	        	outputStream.write(cipher.update(readBuffer, 0, byteRead));
 	        }
-	        inputStream.close();
 	        
 	        // Byte Encryption
 	        outputStream.write(cipher.doFinal());
-	        
 	        byte[] encryptedBytes = outputStream.toByteArray();
-	        outputStream.close();
 	        
-	        //return new String(encryptedBytes, "UTF-8");
 	        return Base64.getEncoder().encodeToString(encryptedBytes);
 		} 
 		catch (NoSuchAlgorithmException | NoSuchPaddingException e) 
@@ -134,6 +128,7 @@ public class FileEncryptor
 		}
 		catch (Exception e)
 		{
+			System.out.println("Not a plane text file type");
 			throw new Exception();
 		}
 		finally
@@ -152,13 +147,15 @@ public class FileEncryptor
         return null;
 	}
 	
-	/***
-	 * 
-	 * @param inputFilePath
-	 * @param outputFilePath
-	 * @return
-	 * @throws Exception
-	 */
+    /***
+     * Read the file and decrypt the contents to new file
+     * @param inputFilePath
+     * 		Input file path
+     * @param outFilePath
+     * 		Output file path
+     * @throws Exception
+     * 		Binary file type
+     */
     public void decryptFileAES(String inputFilePath, String outputFilePath) throws Exception
 	{
     	BufferedWriter outputStream = null;
@@ -191,13 +188,17 @@ public class FileEncryptor
 	}
 	
     /***
-     * 
-     * @param path
+     * Read the file and decrypt the contents to string type
+     * @param inputFilePath
+     * 		Input file path
      * @return
+     * 		Encrypted file contents
      * @throws Exception
+     * 		Binary file type
      */
     public String decryptFileAES(String path) throws Exception
 	{
+    	BufferedInputStream inputStream = null;
     	try
     	{
     		Cipher cipher = Cipher.getInstance(alg);
@@ -206,16 +207,15 @@ public class FileEncryptor
             // Check File type. If not text file, Program finishes
 	        if(!isTextFile(path, ChunkSize)) throw new Exception();
 	        
-    		BufferedInputStream inputStream = new BufferedInputStream(new FileInputStream(path));
+    		inputStream = new BufferedInputStream(new FileInputStream(path));
     		
     		byte[] readBuffer = new byte[inputStream.available()];
     		while (inputStream.read(readBuffer) != -1) {}
     		
-    		inputStream.close();
-                
             // Byte Decryption
             byte[] decodedBytes = Base64.getDecoder().decode(readBuffer);
             byte[] decrypted = cipher.doFinal(decodedBytes);
+            
             return new String(decrypted, "UTF-8");
     	}
     	catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | InvalidAlgorithmParameterException e) 
@@ -234,10 +234,34 @@ public class FileEncryptor
 		{
 			System.out.println("Cipher final padding error");
 		}
+    	catch (Exception e)
+		{
+			System.out.println("Not a plane text file type");
+			throw new Exception();
+		}
+    	finally
+		{
+			try 
+			{
+				inputStream.close();
+			} 
+			catch (IOException e) 
+			{
+				System.out.println("File close error");
+			}
+		}
 		return null;
 		
 	}
-    
+    /***
+     * Checking whether the file type is a text file or a binary file
+     * @param path
+     * 		input file path
+     * @param len
+     * 		Length of the part to be inspected
+     * @return 
+     * 		True : Text file / False : Binary file
+     */
 	private boolean isTextFile(String path, int len)
 	{
 		FileInputStream fileStream = null;
