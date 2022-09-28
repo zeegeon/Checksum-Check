@@ -64,7 +64,7 @@ public class FileEncryptor
 			} 
 			catch (IOException e) 
 			{
-				e.printStackTrace();
+				System.out.println("File close error");
 			}
 		}
 		
@@ -123,7 +123,6 @@ public class FileEncryptor
 		catch (FileNotFoundException e) 
 		{
 			System.out.println("Wrong File Path");
-			//throw e;
 		} 
 		catch (IOException e) 
 		{
@@ -135,7 +134,6 @@ public class FileEncryptor
 		}
 		catch (Exception e)
 		{
-			System.out.println("File type is binary");
 			throw new Exception();
 		}
 		finally
@@ -173,7 +171,7 @@ public class FileEncryptor
 		} 
 		catch (IOException e) 
 		{
-			System.out.println("File open error : decryptFileAES");
+			System.out.println("File open error");
 		}
 		catch (Exception e)
 		{
@@ -187,7 +185,7 @@ public class FileEncryptor
 			} 
 			catch (IOException e) 
 			{
-				e.printStackTrace();
+				System.out.println("File close error");
 			}
 		}
 	}
@@ -226,7 +224,7 @@ public class FileEncryptor
 		}
     	catch (FileNotFoundException e) 
     	{
-			e.printStackTrace();
+    		System.out.println("File not found");
 		}
     	catch (IOException e) 
 		{
