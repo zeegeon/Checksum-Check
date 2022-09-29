@@ -47,14 +47,17 @@ public class FileEncryptor
 			outputStream = new BufferedWriter(new FileWriter(new File(outFilePath)));
 			outputStream.write(fileString);
 		}
+		catch (RuntimeException e)
+		{	
+			System.out.println("not a plane text type");
+			throw e;
+		}
 		catch (IOException e)
 		{
 			System.out.println("File open error");
-		}
-		catch (Exception e)
-		{
 			throw e;
 		}
+	
 		finally
 		{
 			try 
@@ -106,27 +109,15 @@ public class FileEncryptor
 	        
 	        return Base64.getEncoder().encodeToString(encryptedBytes);
 		} 
-		catch (NoSuchAlgorithmException | NoSuchPaddingException e) 
+		catch (GeneralSecurityException e) 
 		{
-			System.out.println("Cipher library run error : " + e.getMessage());
+			System.out.println("General Security Exception : " + e.getMessage());
 		}
-        catch (InvalidKeyException | InvalidAlgorithmParameterException e) 
-        {
-			System.out.println("Key parameter Error : "+ e.getMessage());
-		}
-		catch (FileNotFoundException e) 
+        catch (FileNotFoundException e) 
 		{
 			System.out.println("Wrong File Path");
-		} 
-		catch (IOException e) 
-		{
-			System.out.println("Stream error");
-		} 
-		catch (IllegalBlockSizeException | BadPaddingException e) 
-		{
-			System.out.println("Cipher final padding error");
 		}
-		catch (Exception e)
+		catch (UTFDataFormatException e)
 		{
 			System.out.println("Not a plane text file type");
 			throw new Exception();
@@ -165,14 +156,15 @@ public class FileEncryptor
 			
 			outputStream = new BufferedWriter(new FileWriter(new File(outputFilePath)));
 			outputStream.write(fileString);
-		} 
+		}
+		catch (RuntimeException e)
+		{
+			System.out.println("not plane error");
+			throw e;
+		}
 		catch (IOException e) 
 		{
 			System.out.println("File open error");
-		}
-		catch (Exception e)
-		{
-			throw new Exception();
 		}
 		finally
 		{
@@ -218,26 +210,23 @@ public class FileEncryptor
             
             return new String(decrypted, "UTF-8");
     	}
-    	catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | InvalidAlgorithmParameterException e) 
+    	catch (GeneralSecurityException e) 
 		{
-			System.out.println("Cipher library run error : " + e.getMessage());
+			System.out.println("General Security Exception : " + e.getMessage());
 		}
     	catch (FileNotFoundException e) 
     	{
     		System.out.println("File not found");
 		}
-    	catch (IOException e) 
-		{
-			System.out.println("Stream error");
-		} 
-		catch (IllegalBlockSizeException | BadPaddingException e) 
-		{
-			System.out.println("Cipher final padding error");
-		}
-    	catch (Exception e)
+    	catch (RuntimeException e)
 		{
 			System.out.println("Not a plane text file type");
 			throw new Exception();
+		}
+    	catch (IOException e) 
+		{
+			System.out.println("Stream error");
+			throw new IOException();
 		}
     	finally
 		{

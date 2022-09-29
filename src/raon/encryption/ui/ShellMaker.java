@@ -1,6 +1,7 @@
 package raon.encryption.ui;
 
 import java.io.InputStream;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.events.*;
@@ -291,9 +292,9 @@ public class ShellMaker extends Shell
 						{
 							fileEncryptor.encryptFileAES(inputAESFilePath, outputFilePath);	
 						}
-						catch(Exception e)
+						catch(RuntimeException e)
 						{
-							System.out.println("Encrypt btn Exception "+ e.getMessage());
+							System.out.println("Encrypt btn Exception catch");
 							
 							Display.getDefault().syncExec(new Runnable()
 							{
@@ -304,6 +305,8 @@ public class ShellMaker extends Shell
 									tbOutputText.setForeground(SWTResourceManager.getColor(SWT.COLOR_RED));
 								}
 							});
+						} catch (Exception e) {
+							e.printStackTrace();
 						}
 					}
 				}.start();
@@ -330,9 +333,9 @@ public class ShellMaker extends Shell
 						{
 							fileEncryptor.decryptFileAES(inputAESFilePath, outputFilePath);
 						} 
-						catch (Exception e) 
+						catch (RuntimeException e) 
 						{
-							System.out.println("Decrypt btn Exception"+ e.getMessage());
+							System.out.println("Decrypt btn Exception ccatch");
 							
 							Display.getDefault().syncExec(new Runnable()
 							{
@@ -343,6 +346,8 @@ public class ShellMaker extends Shell
 									tbOutputText.setForeground(SWTResourceManager.getColor(SWT.COLOR_RED));
 								}
 							});	
+						} catch (Exception e) {
+							e.printStackTrace();
 						}
 					}
 				}.start();

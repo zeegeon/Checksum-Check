@@ -75,7 +75,7 @@ public class FileHashChecker
 			}
 			catch (NullPointerException e)
 			{
-				System.out.println("inputStream is null");
+				System.out.println("InputStream close");
 			}
 			catch (IOException e) 
 			{
