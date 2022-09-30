@@ -37,7 +37,7 @@ public class FileEncryptor
      * @throws Exception
      * 		Binary file type
      */
-    public void encryptFileAES(String inputFilePath, String outFilePath) throws Exception
+    public void encryptFileAES(String inputFilePath, String outFilePath) throws RuntimeException, IOException
     {
     	BufferedWriter outputStream = null;
 		try 
@@ -49,15 +49,13 @@ public class FileEncryptor
 		}
 		catch (RuntimeException e)
 		{	
-			System.out.println("not a plane text type");
 			throw e;
 		}
 		catch (IOException e)
 		{
-			System.out.println("File open error");
+			System.out.println(e.getMessage());
 			throw e;
 		}
-	
 		finally
 		{
 			try 
@@ -66,7 +64,7 @@ public class FileEncryptor
 			} 
 			catch (IOException e) 
 			{
-				System.out.println("File close error");
+				System.out.println(e.getMessage());
 			}
 		}
 		
@@ -81,7 +79,7 @@ public class FileEncryptor
      * @throws Exception
      * 		Binary file type
      */
-    public String encryptFileAES(String inputFilePath) throws Exception
+    public String encryptFileAES(String inputFilePath) throws RuntimeException, IOException
 	{
     	BufferedInputStream inputStream = null;
     	ByteArrayOutputStream outputStream = null;
@@ -95,8 +93,8 @@ public class FileEncryptor
 			byte[] readBuffer = new byte[ChunkSize];
 	        int byteRead;
 	        
-	        // Check File type. If not text file, Program finishes
-	        if(!isTextFile(inputFilePath, ChunkSize)) throw new Exception();
+	        // Check File type. If a binary file type, throws exception
+	        if(!isTextFile(inputFilePath, ChunkSize)) throw new RuntimeException();
 	        
 	        while ((byteRead = inputStream.read(readBuffer)) != -1)
 	        {
@@ -109,18 +107,19 @@ public class FileEncryptor
 	        
 	        return Base64.getEncoder().encodeToString(encryptedBytes);
 		} 
-		catch (GeneralSecurityException e) 
+		catch (GeneralSecurityException e)
 		{
-			System.out.println("General Security Exception : " + e.getMessage());
+			System.out.println("Cipher error " + e.getMessage());
 		}
-        catch (FileNotFoundException e) 
-		{
-			System.out.println("Wrong File Path");
-		}
-		catch (UTFDataFormatException e)
+		catch (RuntimeException e)
 		{
 			System.out.println("Not a plane text file type");
-			throw new Exception();
+			throw e;
+		}
+        catch (IOException e)
+		{
+			System.out.println("File I/O error");
+			throw e;
 		}
 		finally
 		{
@@ -131,7 +130,7 @@ public class FileEncryptor
 			} 
 			catch (IOException e) 
 			{
-				System.out.println("File close error");
+				System.out.println("File closer error");
 			}
 		}
         
@@ -147,7 +146,7 @@ public class FileEncryptor
      * @throws Exception
      * 		Binary file type
      */
-    public void decryptFileAES(String inputFilePath, String outputFilePath) throws Exception
+    public void decryptFileAES(String inputFilePath, String outputFilePath) throws RuntimeException, IOException
 	{
     	BufferedWriter outputStream = null;
 		try 
@@ -158,13 +157,13 @@ public class FileEncryptor
 			outputStream.write(fileString);
 		}
 		catch (RuntimeException e)
-		{
-			System.out.println("not plane error");
+		{	
 			throw e;
 		}
-		catch (IOException e) 
+		catch (IOException e)
 		{
-			System.out.println("File open error");
+			System.out.println(e.getMessage());
+			throw e;
 		}
 		finally
 		{
@@ -174,7 +173,7 @@ public class FileEncryptor
 			} 
 			catch (IOException e) 
 			{
-				System.out.println("File close error");
+				System.out.println(e.getMessage());
 			}
 		}
 	}
@@ -188,7 +187,7 @@ public class FileEncryptor
      * @throws Exception
      * 		Binary file type
      */
-    public String decryptFileAES(String path) throws Exception
+    public String decryptFileAES(String path) throws RuntimeException, IOException
 	{
     	BufferedInputStream inputStream = null;
     	try
@@ -196,8 +195,8 @@ public class FileEncryptor
     		Cipher cipher = Cipher.getInstance(alg);
             cipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(key, "AES"), new IvParameterSpec(iv));
             
-            // Check File type. If not text file, Program finishes
-	        if(!isTextFile(path, ChunkSize)) throw new Exception();
+            // Check File type. If a binary file type, throws exception
+	        if(!isTextFile(path, ChunkSize)) throw new RuntimeException();
 	        
     		inputStream = new BufferedInputStream(new FileInputStream(path));
     		
@@ -206,27 +205,23 @@ public class FileEncryptor
     		
             // Byte Decryption
             byte[] decodedBytes = Base64.getDecoder().decode(readBuffer);
-            byte[] decrypted = cipher.doFinal(decodedBytes);
+            byte[] decrypted = cipher.doFinal(decodedBytes); 
             
             return new String(decrypted, "UTF-8");
     	}
-    	catch (GeneralSecurityException e) 
+    	catch (GeneralSecurityException e)
 		{
-			System.out.println("General Security Exception : " + e.getMessage());
+    		System.out.println("Cipher error " + e.getMessage());
 		}
-    	catch (FileNotFoundException e) 
-    	{
-    		System.out.println("File not found");
-		}
-    	catch (RuntimeException e)
+		catch (RuntimeException e)
 		{
 			System.out.println("Not a plane text file type");
-			throw new Exception();
+			throw e;
 		}
-    	catch (IOException e) 
+        catch (IOException e)
 		{
-			System.out.println("Stream error");
-			throw new IOException();
+			System.out.println("File I/O error");
+			throw e;
 		}
     	finally
 		{
@@ -236,11 +231,11 @@ public class FileEncryptor
 			} 
 			catch (IOException e) 
 			{
-				System.out.println("File close error");
+				System.out.println("File closer error");
 			}
 		}
+    	
 		return null;
-		
 	}
     /***
      * Checking whether the file type is a text file or a binary file

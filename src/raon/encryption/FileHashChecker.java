@@ -11,7 +11,7 @@ import java.security.NoSuchAlgorithmException;
 
 public class FileHashChecker
 {
-	private static final int ChunkSize = 20480;
+	private static int ChunkSize = 20480;
 	
 	public interface HashCallback
 	{
@@ -45,7 +45,8 @@ public class FileHashChecker
 			int readBytes = 0;
 			long totalReadBytes = 0;
 			long totalSize = Files.size(Paths.get(inputFilePath));
-
+			if((int)(totalSize / 200) > ChunkSize) ChunkSize = (int) (totalSize / 200);
+			
 			byte[] byteArray = new byte[ChunkSize];
 			while((readBytes = inputStream.read(byteArray)) != -1)
 			{
