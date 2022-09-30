@@ -34,8 +34,11 @@ public class FileEncryptor
      * 		Input file path
      * @param outFilePath
      * 		Output file path
-     * @throws Exception
-     * 		Binary file type
+     * @throws RuntimeException
+     * 		Not a text file type
+     * @throws IOException
+     * 		if the file does not exist,is a directory rather than a regular file,
+     * 		or for some other reason cannot be opened forreading.
      */
     public void encryptFileAES(String inputFilePath, String outFilePath) throws RuntimeException, IOException
     {
@@ -76,8 +79,11 @@ public class FileEncryptor
      * 		Input file path
      * @return
      * 		Encrypted file contents
-     * @throws Exception
-     * 		Binary file type
+     * @throws RuntimeException
+     * 		Not a text file type
+     * @throws IOException
+     * 		if the file does not exist,is a directory rather than a regular file,
+     * 		or for some other reason cannot be opened forreading.
      */
     public String encryptFileAES(String inputFilePath) throws RuntimeException, IOException
 	{
@@ -130,7 +136,7 @@ public class FileEncryptor
 			} 
 			catch (IOException e) 
 			{
-				System.out.println("File closer error");
+				System.out.println("File close error");
 			}
 		}
         
@@ -143,8 +149,11 @@ public class FileEncryptor
      * 		Input file path
      * @param outFilePath
      * 		Output file path
-     * @throws Exception
-     * 		Binary file type
+     * @throws RuntimeException
+     * 		Not a text file type
+     * @throws IOException
+     * 		if the file does not exist,is a directory rather than a regular file,
+     * 		or for some other reason cannot be opened forreading.
      */
     public void decryptFileAES(String inputFilePath, String outputFilePath) throws RuntimeException, IOException
 	{
@@ -184,8 +193,11 @@ public class FileEncryptor
      * 		Input file path
      * @return
      * 		Encrypted file contents
-     * @throws Exception
-     * 		Binary file type
+     * @throws RuntimeException
+     * 		Not a text file type
+     * @throws IOException
+     * 		if the file does not exist,is a directory rather than a regular file,
+     * 		or for some other reason cannot be opened forreading.
      */
     public String decryptFileAES(String path) throws RuntimeException, IOException
 	{
@@ -231,7 +243,7 @@ public class FileEncryptor
 			} 
 			catch (IOException e) 
 			{
-				System.out.println("File closer error");
+				System.out.println("File close error");
 			}
 		}
     	
@@ -242,9 +254,9 @@ public class FileEncryptor
      * @param path
      * 		input file path
      * @param len
-     * 		Length of the part to be inspected
+     * 		length of the part to be inspected
      * @return 
-     * 		True : Text file / False : Binary file
+     * 		whether the file type is a Text file(True) or Binary file(False)
      */
 	private boolean isTextFile(String path, int len)
 	{
@@ -264,7 +276,7 @@ public class FileEncryptor
 		} 
 		catch (IOException e) 
 		{
-			e.printStackTrace();
+			System.out.println("File I/O error");
 		}
 		finally
 		{
@@ -274,7 +286,7 @@ public class FileEncryptor
 			} 
 			catch (IOException e) 
 			{
-				e.printStackTrace();
+				System.out.println("Check file close error");
 			}
 		}
 		return false;
