@@ -54,16 +54,15 @@ public class ShellMaker extends Shell
 		tiHashTab.setControl(compositeHash);
 		compositeHash.setLayout(new GridLayout(2, false));
 		
-		Composite composite = new Composite(compositeHash, SWT.NONE);
-		composite.setLayout(new GridLayout(1, false));
-		composite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
+		Composite compositeHashDnd = new Composite(compositeHash, SWT.NONE);
+		compositeHashDnd.setLayout(new GridLayout(1, false));
+		compositeHashDnd.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
 		
-		Label lbHashDndBox = new Label(composite, SWT.NONE);
+		Label lbHashDndBox = new Label(compositeHashDnd, SWT.NONE);
 		lbHashDndBox.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, true, true, 1, 1));
 		lbHashDndBox.setForeground(SWTResourceManager.getColor(SWT.COLOR_GRAY));
 		lbHashDndBox.setFont(SWTResourceManager.getFont("Arial", 15, SWT.NORMAL));
 		lbHashDndBox.setText("Drag and Drop File");
-		lbHashDndBox.setToolTipText("");
 		
 		Label lbHashFileGen = new Label(compositeHash, SWT.RIGHT);
 		lbHashFileGen.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
@@ -75,20 +74,22 @@ public class ShellMaker extends Shell
 		
 		Label lbHashCheck = new Label(compositeHash, SWT.RIGHT);
 		lbHashCheck.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
-		lbHashCheck.setText("Check");
+		lbHashCheck.setText("Check Hash");
 		
 		Text tbHashCheck = new Text(compositeHash, SWT.BORDER);
 		tbHashCheck.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 		
 		Label lbHashProgress = new Label(compositeHash, SWT.RIGHT);
-		lbHashProgress.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
-		lbHashProgress.setText(0 + " %");
+		GridData gd_lbHashProgress = new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1);
+		gd_lbHashProgress.widthHint = 50;
+		lbHashProgress.setLayoutData(gd_lbHashProgress);
+		lbHashProgress.setText("0 %");
 		
 		ProgressBar pbHashBar = new ProgressBar(compositeHash, SWT.SMOOTH);
 		pbHashBar.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 		pbHashBar.setState(SWT.PAUSED);
 		
-		DropTarget dtHashDnd = new DropTarget(composite, DND.DROP_DEFAULT | DND.DROP_COPY | DND.DROP_MOVE);
+		DropTarget dtHashDnd = new DropTarget(compositeHashDnd, DND.DROP_DEFAULT | DND.DROP_COPY | DND.DROP_MOVE);
 		dtHashDnd.setTransfer(new Transfer[] { FileTransfer.getInstance(), TextTransfer.getInstance() });
 		dtHashDnd.addDropListener(new DropTargetAdapter() 
 		{
@@ -104,7 +105,7 @@ public class ShellMaker extends Shell
 			{
 				String[] inputFilePath = (String[]) e.data;
 				
-				if (inputFilePath != null && inputFilePath.length > 0) 
+				if (inputFilePath != null && inputFilePath.length > 0)
 				{
 					FileHashChecker fhc = new FileHashChecker();
 					fhc.SetCallback(new HashCallback() 
@@ -115,7 +116,7 @@ public class ShellMaker extends Shell
 							Display.getDefault().asyncExec(new Runnable()
 							{
 								@Override
-								public void run() 
+								public void run()
 								{
 									pbHashBar.setSelection(prog);
 									lbHashProgress.setText(prog + " %");
@@ -130,9 +131,10 @@ public class ShellMaker extends Shell
 						public void run() 
 						{
 							String hash = fhc.generateFileHashString(inputFilePath[0]);
+							
 							if(hash != null)
 							{
-								Display.getDefault().asyncExec(new Runnable()
+								Display.getDefault().syncExec(new Runnable()
 								{
 									@Override
 									public void run() 
@@ -144,7 +146,7 @@ public class ShellMaker extends Shell
 							}
 							else
 							{
-								Display.getDefault().asyncExec(new Runnable()
+								Display.getDefault().syncExec(new Runnable()
 								{
 									@Override
 									public void run() 
@@ -152,7 +154,7 @@ public class ShellMaker extends Shell
 										tbHashFileGen.setForeground(SWTResourceManager.getColor(SWT.COLOR_RED));
 										tbHashFileGen.setText("Permission denied : " + inputFilePath[0]);
 										pbHashBar.setSelection(0);
-										lbHashProgress.setText(0 + " %");
+										lbHashProgress.setText("0 %");
 									}
 								});
 							}
@@ -160,7 +162,6 @@ public class ShellMaker extends Shell
 						}
 					}.start();
 				}
-					
 			}
 			
 		});
@@ -207,19 +208,18 @@ public class ShellMaker extends Shell
 		tiAESEncoder.setControl(compositeAES);
 		compositeAES.setLayout(new GridLayout(2, false));
 		
-		Composite composite = new Composite(compositeAES, SWT.NONE);
-		composite.setLayout(new GridLayout(1, false));
-		composite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
+		Composite compositeAESDnd = new Composite(compositeAES, SWT.NONE);
+		compositeAESDnd.setLayout(new GridLayout(1, false));
+		compositeAESDnd.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
 		
-		Label lbAesDndBox = new Label(composite, SWT.NONE);
+		Label lbAesDndBox = new Label(compositeAESDnd, SWT.NONE);
 		lbAesDndBox.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, true, true, 1, 1));
 		lbAesDndBox.setForeground(SWTResourceManager.getColor(SWT.COLOR_GRAY));
 		lbAesDndBox.setFont(SWTResourceManager.getFont("Arial", 15, SWT.NORMAL));
 		lbAesDndBox.setText("Drag and Drop File");
-		
-				
 				
 		Label lbOutput = new Label(compositeAES, SWT.CENTER);
+		lbOutput.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 		lbOutput.setText("Output (.aes)");
 		
 		Text tbOutputText = new Text(compositeAES, SWT.BORDER);
@@ -227,58 +227,55 @@ public class ShellMaker extends Shell
 
 		Button btnEncrypt = new Button(compositeAES, SWT.NONE);
 		btnEncrypt.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 2, 1));
-		btnEncrypt.setToolTipText("Convert file to .aes file");
 		btnEncrypt.setEnabled(false);
 		btnEncrypt.setText("Encrypt");
 
 		Button btnAESDecrypt = new Button(compositeAES, SWT.NONE);
 		btnAESDecrypt.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 2, 1));
-		btnAESDecrypt.setToolTipText("Convert .aes file to .txt file");
 		btnAESDecrypt.setEnabled(false);
 		btnAESDecrypt.setText("Decrypt");
 		
-		DropTarget dtAESDnd = new DropTarget(composite, DND.DROP_DEFAULT | DND.DROP_COPY | DND.DROP_MOVE);
+		DropTarget dtAESDnd = new DropTarget(compositeAESDnd, DND.DROP_DEFAULT | DND.DROP_COPY | DND.DROP_MOVE);
 		dtAESDnd.setTransfer(new Transfer[] { FileTransfer.getInstance(), TextTransfer.getInstance() });
-		
-				dtAESDnd.addDropListener(new DropTargetAdapter()
+		dtAESDnd.addDropListener(new DropTargetAdapter()
+		{
+			public void dragEnter(DropTargetEvent e) 
+			{
+				if (e.detail == DND.DROP_DEFAULT)
+					e.detail = DND.DROP_COPY;
+			}
+
+			public void dragOperationChanged(DropTargetEvent e) {}
+
+			public void drop(DropTargetEvent e) 
+			{
+				String[] inputFilePath = (String[]) e.data;
+				
+				if (inputFilePath != null && inputFilePath.length > 0) 
 				{
-					public void dragEnter(DropTargetEvent e) 
-					{
-						if (e.detail == DND.DROP_DEFAULT)
-							e.detail = DND.DROP_COPY;
-					}
-		
-					public void dragOperationChanged(DropTargetEvent e) {}
-		
-					public void drop(DropTargetEvent e) 
-					{
-						String[] inputFilePath = (String[]) e.data;
-						
-						if (inputFilePath != null && inputFilePath.length > 0) 
-						{
-							inputAESFilePath = inputFilePath[0];
-							String[] tokens = inputAESFilePath.split("\\.(?=[^\\.]+$)");
-							if (tokens.length < 2) return;
-							tbOutputText.setForeground(SWTResourceManager.getColor(SWT.COLOR_BLACK));
-							
-							if (tokens[1].equals("aes")) 
-							{
-								btnEncrypt.setEnabled(false);
-								btnAESDecrypt.setEnabled(true);
-								tbOutputText.setText(tokens[0] + ".txt");
-								lbOutput.setText("Output (.txt)");
-							}
-							else
-							{
-								btnEncrypt.setEnabled(true);
-								btnAESDecrypt.setEnabled(false);
-								tbOutputText.setText(tokens[0] + ".aes");
-								lbOutput.setText("Output (.aes)");
-							}
-						}
-					}
+					inputAESFilePath = inputFilePath[0];
+					String[] tokens = inputAESFilePath.split("\\.(?=[^\\.]+$)");
+					if (tokens.length < 2) return;
+					tbOutputText.setForeground(SWTResourceManager.getColor(SWT.COLOR_BLACK));
 					
-				});
+					if (tokens[1].equals("aes")) 
+					{
+						btnEncrypt.setEnabled(false);
+						btnAESDecrypt.setEnabled(true);
+						tbOutputText.setText(tokens[0] + ".txt");
+						lbOutput.setText("Output (.txt)");
+					}
+					else
+					{
+						btnEncrypt.setEnabled(true);
+						btnAESDecrypt.setEnabled(false);
+						tbOutputText.setText(tokens[0] + ".aes");
+						lbOutput.setText("Output (.aes)");
+					}
+				}
+			}
+			
+		});
 		
 		btnEncrypt.addSelectionListener(new SelectionAdapter() 
 		{
