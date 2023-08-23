@@ -1,3 +1,3 @@
 # Checksum-Check
 
-JAVA Application Program for window
+Java Application Program for windows
